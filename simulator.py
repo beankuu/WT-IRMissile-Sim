@@ -1,136 +1,187 @@
 import numpy as np
 
+from matplotlib import rc
+rc('font', family='Gulim')
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import proj3d
 
 # customs
 import pathGen
 import data
 import calculate as calc
 import mObjects as obj
+from mObjects import Vec3D as vec3
+
+#===============================================
+#-----------------------------------------------
+targetdata = data.target1
+missiledata = data.missile1
+#-----------------------------------------------
 
 fig = plt.figure()
-trajectoryAx = fig.add_subplot(projection = '3d')
+trajectoryPlot = fig.add_subplot(projection = '3d')
 
-trajectoryAx.set_xlim3d([0,data.RANGEMAX])
-trajectoryAx.set_ylim3d([-data.RANGEMAX/2,data.RANGEMAX/2])
-trajectoryAx.set_zlim3d([0, 2000])
 
-trajectoryAx.set_xlabel('DISTANCE(m)')
-trajectoryAx.set_ylabel('DISTANCE(m)')
-trajectoryAx.set_zlabel('Altitude(m)')
+trajectoryPlot.set_xlim3d([0,7000])
+trajectoryPlot.set_ylim3d([-2000,100])
+trajectoryPlot.set_zlim3d([1500,3500])
 
-data_target_raw = list(pathGen.genTargetTrajectory())
-data_raw_position = list()
-data_raw_direction = list()
-for elm in data_target_raw:
-    data_raw_position.append(elm[:3])
-    data_raw_direction.append(elm[3:])
-data_target_position = np.array(data_raw_position).T
-data_target_direction = np.array(data_raw_direction).T
-name_target = data.t['name']
-line_target,= trajectoryAx.plot(0,0,0)
-text_target = trajectoryAx.text(0,0,0,'', color='blue')
-line_x_target,= trajectoryAx.plot(0,0,0)
-line_y_target,= trajectoryAx.plot(0,0,0)
-line_z_target,= trajectoryAx.plot(0,0,0)
+trajectoryPlot.set_xlabel('거리(m)')
+trajectoryPlot.set_ylabel('거리(m)')
+trajectoryPlot.set_zlabel('고도(m)')
 
-# ax.plot returns list of line2d
-data_missile = np.array(list(pathGen.genMissileTrajectory())).T
-name_missile = data.m['name']
-line_missile,= trajectoryAx.plot(0,0,0)
-text_missile = trajectoryAx.text(0,0,0,'', color='red')
+#==================================================================
+text_frame_now = trajectoryPlot.text3D(0,0,0,'', color='black')
+#-----------------------------------------------------------
+# list of mObjects.TargetObject
+data_target = list(pathGen.genTargetTrajectory(obj.TargetObject(data=targetdata)))
+name_target = data_target[0].data['name']
+line_target,= trajectoryPlot.plot(0,0,0, color='blue')
+text_name_target = trajectoryPlot.text3D(0,0,0,'', color='blue', va='top', ha='left')
+text_tags_target = trajectoryPlot.text3D(0,0,0,'', color='blue', va='top', ha='left', size='x-small')
 
-USE_FLARE = False; show_flare = False
+line_x_target,= trajectoryPlot.plot(0,0,0, color = 'magenta')
+line_y_target,= trajectoryPlot.plot(0,0,0, color = 'lime')
+line_z_target,= trajectoryPlot.plot(0,0,0, color = 'cyan')
+#-----------------------------------------------------------
+# list of mObjects.MissileObject
+data_missile = list(pathGen.genMissileTrajectory(obj.MissileObject(data=missiledata), data_target))
+name_missile = data_missile[0].data['name']
+line_missile,= trajectoryPlot.plot(0,0,0, color = 'red')
+text_name_missile = trajectoryPlot.text3D(0,0,0,'', color='red', va='top', ha='right')
+text_tags_missile = trajectoryPlot.text3D(0,0,0,'', color='red', va='top', ha='right', size='x-small')
+
+line_seeker_missile,= trajectoryPlot.plot(0,0,0, color = 'yellow')
+#-----------------------------------------------------------
+# Flares!
+USE_FLARE = False
 show_flare_at = 4
-text_flare = trajectoryAx.text(0,0,0,'FLARE', color='purple')
+text_flare = trajectoryPlot.text3D(0,0,0,'FLARE', color='purple')
 text_flare.set_visible(False)
 
+# Boom when hit
+"""
 show_boom = False
-text_boom = trajectoryAx.text(0,0,0,'Boom', color='orange')
+text_boom = trajectoryAx.text3D(0,0,0,'Boom', color='orange')
 text_boom.set_visible(False)
+"""
 
+mindist = [data.INFINITE, 0] #[any big number, max location diff at frame]
 #! update function
-def update(time,USE_FLARE,show_flare):
+def update(frame,mindist):
+    text_frame_now.set_text(str(frame)+'('+str(round(frame*data.dt,1))+'s)')
+    #------------------------------------------
+    # basic trajectories
+    direction_vectors = [o.pVec for o in data_missile[:frame+1]]
+    line_missile.set_data_3d([o.x for o in direction_vectors],
+                             [o.y for o in direction_vectors],
+                             [o.z for o in direction_vectors])
+    direction_vectors = [o.pVec for o in data_target[:frame+1]]
+    line_target.set_data_3d([o.x for o in direction_vectors],
+                            [o.y for o in direction_vectors],
+                            [o.z for o in direction_vectors])
+    #------------------------------------------
+    #points for updating infos
+    mP = data_missile[frame]
+    tP = data_target[frame]
+    #------------------------------------------
     # missile info update
-    mdata = data_missile
-    line_missile.set_data(mdata[:2,:time])
-    line_missile.set_3d_properties(mdata[2,:time])
-    text_missile.set_position(mdata[:3,time])
+    mHeight = mP.pVec.z
+    mSpeed = mP.vVec.norm()/data.dt
 
-    mP1 = mdata[:3,time]
-    if time == 0: mP3 = mP2 = mP1
-    elif time == 1: mP3 = mP2 = mdata[:3,time-1]
-    else: mP2 = mdata[:3,time-1]; mP3 = mdata[:3,time-2]
-    mheight = mdata[2,time] # z
-    mSpeed = calc.calcSpeed(mP1,mP2,1/data.FPS)
-    text_missile.set_text(name_missile+'\n'+
-                            #'Mach: '+ str(getMach(mSpeed,mheight))+'('+str(round(mSpeed/0.277,2))+'km/h)\n'+
-                            'Mach: '+ str(data.getMach(mSpeed,mheight))+'\n'+
-                            'AoA: ' +'\n'+
-                            'G: ' + str(data.getGForce(calc.calcAcceleration(mP1,mP2,mP3,1/data.FPS),mheight))
+    #set_position only fetches first 2(x,y)
+    text_name_missile.set_position_3d(mP.pVec.toList())
+    text_tags_missile.set_position_3d(mP.pVec.toList())
+    text_name_missile.set_text(name_missile)
+    text_tags_missile.set_text('\n\n'+
+                            'Mach: '+ str(round(data.calcMach(mSpeed,mHeight),1))+'('+str(round(mSpeed/0.277,1))+'km/h)\n'+
+                            #'Mach: '+ str(data.getMach(mSpeed,mHeight))+'\n'+
+                            'AoA: ' +'몰?루\n'+
+                            'G: ' + str(round(mP.aVec.norm()/data.dt/data.getGravity(mHeight),1))+'\n'+
+                            'to-Target: ' + str(round(np.abs((tP.pVec-mP.pVec).norm())/1000,1))+'km'
                         )
-    if not mdata[3,time]: text_missile.set_color('grey')
+    if mP.isLocked: text_name_missile.set_color('red'); text_tags_missile.set_color('red')
+    else: text_name_missile.set_color('grey');text_tags_missile.set_color('grey')
 
-    # target info update
-    tdata = data_target_position
-    line_target.set_data(tdata[:2,:time])
-    line_target.set_3d_properties(tdata[2,:time])
-    
-    tP1 = tdata[:3,time]
-    if time == 0: tP3 = tP2 = tP1
-    elif time == 1: tP3 = tP2 = tdata[:3,time-1]
-    else: tP2 = tdata[:3,time-1]; tP3 = tdata[:3,time-2]
-    theight = tdata[2,time] # z
-    tSpeed = calc.calcSpeed(tP1,tP2,1/data.FPS)
-
-    text_target.set_position(tP1)
-    text_target.set_text(name_target+'\n'+
-                            'Mach: '+ str(data.getMach(tSpeed,theight))+'('+str(round(tSpeed/0.277,2))+'km/h)\n'+
-                            'Height: ' + str(round(theight,1))+'m\n'+
-                            'G: ' + str(data.getGForce(calc.calcAcceleration(tP1,tP2,tP3,1/data.FPS),theight))+'\n'+
-                            'M-Dist: ' + str(round(np.abs(np.linalg.norm(tP1-mP1))/1000,2))+'km'
-                        )
-    
     # direction!
-    tddata = data_target_direction
     pole_length=300
     # x(acceleration) == data(3~5)
-    target_acceleration = tddata[:3,time]
-    x_pole_vec = target_acceleration
-    x_pole = np.array([tP1,tP1+pole_length*x_pole_vec]).T
-    line_x_target.set_data(x_pole[:2])
-    line_x_target.set_3d_properties(x_pole[2])
-    # y = x cross prev
-    #prev_acceleration = tddata[:3,time-1]
-    #y_pole_vec = vec_normalize(np.cross(target_acceleration,prev_acceleration))
-    y_pole_vec = calc.vec_normalize(np.cross(tP2,tP1))
-    y_pole = np.array([tP1,tP1+pole_length*y_pole_vec]).T
-    line_y_target.set_data(y_pole[:2])
-    line_y_target.set_3d_properties(y_pole[2])
-    # z = x cross y
-    z_pole_vec = calc.vec_normalize(np.cross(target_acceleration,y_pole_vec))
-    z_pole = np.array([tP1,tP1+pole_length*z_pole_vec]).T
-    line_z_target.set_data(z_pole[:2])
-    line_z_target.set_3d_properties(z_pole[2])
+    seeker_pole_vec = mP.sVec
+    seeker_pole_end = mP.pVec+pole_length*seeker_pole_vec
+    seeker_pole = ([[mP.pVec.x,seeker_pole_end.x], 
+                    [mP.pVec.y,seeker_pole_end.y],
+                    [mP.pVec.z,seeker_pole_end.z]])
+    line_seeker_missile.set_data_3d(seeker_pole)
+    #------------------------------------------
+    # target info update 
     
+    tHeight = tP.pVec.z
+    tSpeed = tP.vVec.norm()/data.dt
 
+    text_name_target.set_position_3d(tP.pVec.toList())
+    text_tags_target.set_position_3d(tP.pVec.toList())
+    text_name_target.set_text(name_target)
+    text_tags_target.set_text('\n\n'+
+                            'Speed: ' + str(round(tSpeed/0.277,1)) +'km/h\n'+
+                            'Mach: ' + str(round(data.calcMach(tSpeed,tHeight),1))+'\n'+
+                            'Height: ' + str(round(tHeight,1)) +'m\n'+
+                            'G: ' + str(round(tP.aVec.norm()/data.dt/data.getGravity(tHeight),1))
+                        )
+    if frame == 0: text_name_target.set_color('blue');text_tags_target.set_color('blue')
+
+    mtDistance = (mP.pVec-tP.pVec).norm()
+    maxDx = (mP.vVec.norm() if mP.vVec.norm() > tP.vVec.norm() else tP.vVec.norm())#*data.dt
+    if mtDistance < mP.data['proximityFuse_radius']+maxDx: text_name_target.set_color('grey');text_tags_target.set_color('grey')
+    if mtDistance < mindist[0]: mindist[0],mindist[1] = mtDistance, maxDx
+
+    # direction!
+    pole_length=150
+    # x = direction(velocity)
+    x_pole_vec = tP.vVec.normalize()
+    x_pole_end = tP.pVec+2*pole_length*x_pole_vec #? 2x?
+    x_pole = ([[tP.pVec.x, x_pole_end.x], 
+               [tP.pVec.y, x_pole_end.y],
+               [tP.pVec.z, x_pole_end.z]])
+    line_x_target.set_data_3d(x_pole)
+    # z = upwards(up)
+    z_pole_vec = tP.upVec # assume normalized
+    z_pole_end = tP.pVec+pole_length*z_pole_vec
+    z_pole = ([[tP.pVec.x, z_pole_end.x], 
+               [tP.pVec.y, z_pole_end.y],
+               [tP.pVec.z, z_pole_end.z]])
+    line_z_target.set_data_3d(z_pole)
+    # y = (x) cross (up)
+    y_pole_vec = x_pole_vec.cross(z_pole_vec)
+    y_pole_end = tP.pVec+pole_length*y_pole_vec
+    y_pole = ([[tP.pVec.x, y_pole_end.x], 
+               [tP.pVec.y, y_pole_end.y],
+               [tP.pVec.z, y_pole_end.z]])
+    line_y_target.set_data_3d(y_pole)
+    
+    #------------------------------------------
     #Flare!
     if USE_FLARE:
-        if time == 0:
-            text_flare.set_visible(False); show_flare = False
-        elif not show_flare and show_flare_at < (data.TIMEMAX*time/data.MaxFrame):
-            text_flare.set_position(tdata[:3,time])
-            text_flare.set_visible(True); show_flare = True
-    
+        if frame == 0:
+            text_flare.set_visible(False)
+        elif not text_flare.get_visible() and show_flare_at < frame*data.dt:
+            text_flare.set_position_3d(tP.toList())
+            text_flare.set_visible(True)
 
+
+    # rotate graph
+    trajectoryPlot.view_init(elev = 20, azim=-160+30-frame/3)
+    # at end of interval
+    if frame == data.MaxFrame-1:
+        print(mindist); mindist = [data.INFINITE,0]
+#---------------------------------------------------------------------------
 animation = ani.FuncAnimation(
     fig = fig,
     func = update,
-    fargs = (USE_FLARE,show_flare),
+    fargs = (mindist,),
     frames = data.MaxFrame,
-    interval = data.TIMEMAX * 1000/data.MaxFrame
+    interval = 1000/data.FPS
 )
-#animation.save('test.webp',writer='Pillow')
+#animation.save('test.webp')
 plt.show()

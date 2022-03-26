@@ -1,94 +1,91 @@
+from tkinter import RIGHT
 import numpy as np
 
 # customs
+import guidance as guide # for missile guidance
+
 import data
 import calculate as calc
-import guidance as guid
 import mObjects as obj
+from mObjects import Vec3D as vec3
 
 #*----------------------------------------------------------------------
-def genTargetTrajectory():
-    r,rho,theta = data.INIT_TARGET_HORIZ_COORDINATE
-    #horizontal -> cartesian coordinate
-    rotated_position = np.array([   r*np.cos(theta),
-                                    r*np.cos(rho)*np.sin(theta),
-                                    r*np.sin(rho)*np.sin(theta)
-                                ])
-    # +initial position
-    TARGET_POSITION = data.INIT_MISSILE_POSITION+rotated_position
-    #INIT_TARGET_POSITION = [x+y for x,y in zip(INIT_MISSILE_POSITION,TARGET_POSITION)]
-    
-    direction_vec = np.array([1.0, 0.0, 0.0])
-    newdirection = direction_vec  
+INIT_MISSILE_POSITION=[0,0,3000]   # m
+#horizontal coordinate(r,inclination,azimuth), degree
+INIT_TARGET_HORIZ_COORDINATE=(2500, 90, -20)
+TARGET_INIT_VELOCITY = 280 #(m/s), 1008kmh
 
-    # fly straight, until reaction time
-    reaction_time = 0.5 #s
+REACTION_TIME = 1
+MAXROTATION = 0.8
+ROTATION_RADIUS_INIT = 40
+ROTATION_RADIUS_INCREASE = 300
+DOWNWARDS_ANGLE = np.radians(0)
+
+def genTargetTrajectory(target):
+    dt = data.dt
+    t = target
+    t.fire_flare_at = 3
+    #horizontal -> cartesian coordinate
+    t.pVec.setSphericalDegree(INIT_TARGET_HORIZ_COORDINATE)
+    # +initial position
+    t.pVec += INIT_MISSILE_POSITION 
+    t.pVec -= [0,300,300]
+    # fly straight forward! (m/s -> m/frame)
+    t.vVec = vec3(TARGET_INIT_VELOCITY, 0, 0)*dt#s.rotate(np.radians(30),'z')
+    # 1. fly straight, until reaction time
     f = 0
-    velocity_per_frame = data.TARGET_INIT_VELOCITY/data.FPS
-    while f < reaction_time*data.FPS:
-        TARGET_POSITION += np.array([velocity_per_frame,0,0])
-        c = []
-        for ai in TARGET_POSITION: c.append(ai)
-        for bi in newdirection: c.append(bi)
-        yield np.array(c)
-        #yield np.array(TARGET_POSITION)
+    while f*dt < REACTION_TIME:
+        t.pVec += t.vVec # dt == 1 frame
+        yield t.clone()
         f += 1
-    
-    def rotate_vec_x(P,angle):
-        return np.array([P[0],
-                        np.cos(angle)*P[1]-np.sin(angle)*P[2],
-                        np.sin(angle)*P[1]+np.cos(angle)*P[2]])
-    def rotate_vec_y(P,angle):
-        return np.array([np.cos(angle)*P[0]+np.sin(angle)*P[2],
-                        P[1],
-                        -np.sin(angle)*P[0]+np.cos(angle)*P[2]])
-    def rotate_vec_z(P,angle):
-        return np.array([np.cos(angle)*P[0]-np.sin(angle)*P[1],
-                        np.sin(angle)*P[0]+np.cos(angle)*P[1],
-                        P[2]])
 
     # 2. rotate
-    maxrotation = 1.5
-    rotation_radius = 1 #m
-
-    downwards_degree = np.radians(30)
-
+    t.vVec.rotate(np.radians(40),'z')
     angle = 0
-    angle_per_rotate = maxrotation*2*np.pi/(data.MaxFrame-reaction_time*data.FPS)
+    angle_inc_per_frame = MAXROTATION*2*np.pi/(data.MaxFrame-f*dt)
+    radius = ROTATION_RADIUS_INIT
+    radius_inc_per_frame = MAXROTATION*ROTATION_RADIUS_INCREASE/(data.MaxFrame-f*dt)
     
     while f < data.MaxFrame:
-        #angular_vector = vec_normalize(np.array([1.0,np.cos(angle),np.sin(angle)]))
-        newdirection = direction_vec + np.array([0,rotation_radius,0])
-        newdirection = rotate_vec_x(newdirection,angle)
-        newdirection = rotate_vec_y(newdirection,downwards_degree)
-        #newdirection = vec_normalize(direction_vec+rotation_radius*angular_vector)
-        newdirection = calc.vec_normalize(newdirection)
-
-        accel_gravity = data.getGravity(TARGET_POSITION[2])
-        velocity_per_frame += accel_gravity/(data.FPS*data.FPS)
-        if velocity_per_frame > data.t['maxspeed']/data.FPS:
-            velocity_per_frame = data.t['maxspeed']/data.FPS
+        gravity = data.getGravity(t.pVec.z)
         
-        TARGET_POSITION += velocity_per_frame*newdirection
-        #print(np.concatenate((TARGET_POSITION,newdirection)))
-        c = []
-        for ai in TARGET_POSITION: c.append(ai)
-        for bi in newdirection: c.append(bi)
-        yield np.array(c)
-
-        angle += angle_per_rotate
+        accel_wanted = vec3(0,radius,0)
+        accel_wanted = accel_wanted.rotate(-angle,'x')
+        t.upVec = t.upVec.rotate(angle_inc_per_frame,'x')
+        
+        if accel_wanted.norm()/gravity > 7.5:
+            t.aVec = 7.5*accel_wanted.normalize()*dt*dt
+        else:
+            t.aVec = accel_wanted*dt*dt
+        
+        accel_front = vec3() #Thrust # !temporary
+        accel_back = -t.vVec.normalize() #Drag # !temporary
+        accel_up = vec3() #0
+        accel_down = vec3() #0
+        accel_balance = (accel_front+accel_back + accel_up+accel_down)
+        t.aVec += accel_balance*dt*dt
+        t.vVec += t.aVec #dt == 1 frame
+        t.pVec += t.vVec #dt == 1 frame #+ 0.5*t.aVec
+        yield t.clone()
+        
+        angle += angle_inc_per_frame
+        radius += radius_inc_per_frame
         f += 1
+
+
+
 #*----------------------------------------------------------------------
-def genMissileTrajectory():
-    #INIT_MISSILE_POSITION
-    """
+def genMissileTrajectory(missile, targetDataList):
+    dt = data.dt
+    m = missile
+    m.pVec += INIT_MISSILE_POSITION
+    m.intgK = m.data['g_ga_accelControlIntg']
+    m.sVec = (targetDataList[0].pVec-m.pVec).normalize()
+    m.vVec = m.sVec.normalize()
+
     f = 0
     while f < data.MaxFrame:
-        yield guidance.getMissileLocation(f/data.FPS)
+        m = guide.getMissileData(m,targetDataList[f],f,dt)
+        yield m.clone()
         f += 1
-    """
-    phi = 0
-    while phi < 2*np.pi:
-        yield np.array([np.cos(phi), np.sin(phi), phi, True])
-        phi += 2*np.pi/data.MaxFrame
     #"""
