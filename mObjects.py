@@ -112,17 +112,20 @@ class Vec3D:
         self /= self.norm()
         return self
 
-    # inclination(theta), azimuth(rho) in rads
     def setSpherical(self,r,theta,rho):
+        """
+        inclination(theta)[-pi/2~pi/2], azimuth(rho)[0~pi] in rads
+        """
+        theta = theta + np.pi/2 #inclination(theta)[-pi/2~pi/2],
         self.x = r*np.cos(rho)*np.sin(theta)
         self.y = r*np.sin(rho)*np.sin(theta)
         self.z = r*np.cos(theta)
         return self
-    def setSphericalDegree(self,r,rho,theta):
-        return self.setSpherical(r,np.radians(rho),np.radians(theta))
+    def setSphericalDegree(self,r,theta,rho):
+        return self.setSpherical(r,np.radians(theta),np.radians(rho))
     def setSphericalDegree(self,lst):
-        r, rho, theta = lst
-        return self.setSpherical(r,np.radians(rho),np.radians(theta))
+        r, theta, rho = lst
+        return self.setSpherical(r,np.radians(theta),np.radians(rho))
 
     def __str__(self):
         return str([self.x, self.y, self.z])
@@ -138,11 +141,12 @@ class Vec3D:
 
 # root object
 class SimObject:
-    # position(pVec), velocity(vVec), acceleration(aVec), upwards(upVec), data dictionary(dataDict)
-    def __init__(self, pVec=None, vVec=None, aVec=None, upVec=None, data=None):
+    # position(pVec), velocity(vVec), acceleration(aVec), frontwards(fVec), upwards(upVec), data dictionary(dataDict)
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None):
         self.pVec = Vec3D() if pVec == None else pVec
         self.vVec = Vec3D() if vVec == None else vVec
         self.aVec = Vec3D() if aVec == None else aVec
+        self.fVec = Vec3D(1,0,0) if fVec == None else fVec
         self.upVec = Vec3D(0,0,1) if upVec == None else upVec
         self.data = {} if data == None else data
     def clone(self):
@@ -150,8 +154,8 @@ class SimObject:
 
 # same?
 class TargetObject(SimObject):
-    def __init__(self, pVec=None, vVec=None, aVec=None, upVec=None, data=None, fire_flare_at=None):
-        super().__init__(pVec,vVec,aVec,upVec,data)
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, fire_flare_at=None):
+        super().__init__(pVec,vVec,aVec,fVec,upVec,data)
         self.fire_flare_at = 0.0 if fire_flare_at == None else fire_flare_at
     def clone(self):
         return copy.deepcopy(self)
@@ -159,8 +163,8 @@ class TargetObject(SimObject):
 # (1x SimObject), 1x seekerVec, booleans...
 class MissileObject(SimObject):
     # ...seeker direction(sVec), acceleration(aVec)
-    def __init__(self, pVec=None, vVec=None, aVec=None, upVec=None, sVec=None, data=None):
-        super().__init__(pVec,vVec,aVec,upVec,data)
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, sVec=None, data=None):
+        super().__init__(pVec,vVec,aVec,fVec,upVec,data)
         self.sVec = Vec3D() if sVec == None else sVec
         self.isLocked = True
         self.isMaxG = False
@@ -170,7 +174,10 @@ class MissileObject(SimObject):
         # PID error values
         self.PIDe1=Vec3D()
         self.PIDe2=Vec3D()
-        self.intgK=0.0
+        if data == None:
+            self.intgK=0.0
+        else:
+            self.intgK=data['g_ga_accelControlIntg']
     def rotate(self,degree,axis):
         super().rotate(degree,axis)
         self.sVec = self.sVec.rotate(degree,axis)

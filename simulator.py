@@ -5,19 +5,17 @@ rc('font', family='Gulim')
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
-from mpl_toolkits.mplot3d import proj3d
 
 # customs
 import pathGen
 import data
-import calculate as calc
 import mObjects as obj
 from mObjects import Vec3D as vec3
 
 #===============================================
 #-----------------------------------------------
 targetdata = data.target1
-missiledata = data.missile1
+missiledata = data.missile2
 #-----------------------------------------------
 
 fig = plt.figure()
@@ -25,7 +23,7 @@ trajectoryPlot = fig.add_subplot(projection = '3d')
 
 
 trajectoryPlot.set_xlim3d([0,7000])
-trajectoryPlot.set_ylim3d([-2000,100])
+trajectoryPlot.set_ylim3d([-1000,1000])
 trajectoryPlot.set_zlim3d([1500,3500])
 
 trajectoryPlot.set_xlabel('거리(m)')
@@ -33,10 +31,14 @@ trajectoryPlot.set_ylabel('거리(m)')
 trajectoryPlot.set_zlabel('고도(m)')
 
 #==================================================================
-text_frame_now = trajectoryPlot.text3D(0,0,0,'', color='black')
+text_frame_now = trajectoryPlot.text3D(0,0,1500,'', color='black')
 #-----------------------------------------------------------
 # list of mObjects.TargetObject
-data_target = list(pathGen.genTargetTrajectory(obj.TargetObject(data=targetdata)))
+data_target = list(pathGen.genTargetTrajectory(
+    obj.TargetObject(data=targetdata),
+    data.dt,
+    data.MaxFrame
+    ))
 name_target = data_target[0].data['name']
 line_target,= trajectoryPlot.plot(0,0,0, color='blue')
 text_name_target = trajectoryPlot.text3D(0,0,0,'', color='blue', va='top', ha='left')
@@ -47,7 +49,12 @@ line_y_target,= trajectoryPlot.plot(0,0,0, color = 'lime')
 line_z_target,= trajectoryPlot.plot(0,0,0, color = 'cyan')
 #-----------------------------------------------------------
 # list of mObjects.MissileObject
-data_missile = list(pathGen.genMissileTrajectory(obj.MissileObject(data=missiledata), data_target))
+data_missile = list(pathGen.genMissileTrajectory(
+    obj.MissileObject(data=missiledata), 
+    data.dt,
+    data.MaxFrame,
+    data_target
+    ))
 name_missile = data_missile[0].data['name']
 line_missile,= trajectoryPlot.plot(0,0,0, color = 'red')
 text_name_missile = trajectoryPlot.text3D(0,0,0,'', color='red', va='top', ha='right')
@@ -89,7 +96,7 @@ def update(frame,mindist):
     #------------------------------------------
     # missile info update
     mHeight = mP.pVec.z
-    mSpeed = mP.vVec.norm()/data.dt
+    mSpeed = mP.vVec.norm()
 
     #set_position only fetches first 2(x,y)
     text_name_missile.set_position_3d(mP.pVec.toList())
@@ -99,7 +106,7 @@ def update(frame,mindist):
                             'Mach: '+ str(round(data.calcMach(mSpeed,mHeight),1))+'('+str(round(mSpeed/0.277,1))+'km/h)\n'+
                             #'Mach: '+ str(data.getMach(mSpeed,mHeight))+'\n'+
                             'AoA: ' +'몰?루\n'+
-                            'G: ' + str(round(mP.aVec.norm()/data.dt/data.getGravity(mHeight),1))+'\n'+
+                            'G: ' + str(round(mP.aVec.norm()/data.getGravity(mHeight),1))+'\n'+
                             'to-Target: ' + str(round(np.abs((tP.pVec-mP.pVec).norm())/1000,1))+'km'
                         )
     if mP.isLocked: text_name_missile.set_color('red'); text_tags_missile.set_color('red')
@@ -118,7 +125,7 @@ def update(frame,mindist):
     # target info update 
     
     tHeight = tP.pVec.z
-    tSpeed = tP.vVec.norm()/data.dt
+    tSpeed = tP.vVec.norm()
 
     text_name_target.set_position_3d(tP.pVec.toList())
     text_tags_target.set_position_3d(tP.pVec.toList())
@@ -127,12 +134,12 @@ def update(frame,mindist):
                             'Speed: ' + str(round(tSpeed/0.277,1)) +'km/h\n'+
                             'Mach: ' + str(round(data.calcMach(tSpeed,tHeight),1))+'\n'+
                             'Height: ' + str(round(tHeight,1)) +'m\n'+
-                            'G: ' + str(round(tP.aVec.norm()/data.dt/data.getGravity(tHeight),1))
+                            'G: ' + str(round(tP.aVec.norm()/data.getGravity(tHeight),1))
                         )
     if frame == 0: text_name_target.set_color('blue');text_tags_target.set_color('blue')
 
     mtDistance = (mP.pVec-tP.pVec).norm()
-    maxDx = (mP.vVec.norm() if mP.vVec.norm() > tP.vVec.norm() else tP.vVec.norm())#*data.dt
+    maxDx = (mP.vVec.norm() if mP.vVec.norm() > tP.vVec.norm() else tP.vVec.norm()) * data.dt
     if mtDistance < mP.data['proximityFuse_radius']+maxDx: text_name_target.set_color('grey');text_tags_target.set_color('grey')
     if mtDistance < mindist[0]: mindist[0],mindist[1] = mtDistance, maxDx
 
@@ -171,7 +178,7 @@ def update(frame,mindist):
 
 
     # rotate graph
-    trajectoryPlot.view_init(elev = 20, azim=-160+30-frame/3)
+    #trajectoryPlot.view_init(elev = 20-10+frame/8, azim=-160+30-frame/3)
     # at end of interval
     if frame == data.MaxFrame-1:
         print(mindist); mindist = [data.INFINITE,0]

@@ -1,5 +1,18 @@
 # bunch of hardcoded datas + helper functions
 INFINITE = 2147483647
+# missile0 : Dummy Missile! based on AIM-9B
+missile0 = {
+    'name' : 'AIM-9B',
+    'caliber' : 0.127,    'mass' : 72.57,   'massEnd' : 55.8,    'dragCx' : 0.018,    'length' : 2.83,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
+    'CxK' : 3.3,    'finsAoA' : 0.16,    'force' : 17263.0,    'timeFire' : 2.2,     'endSpeed' : 1000.0,    'timeLife' : 20.0,    
+    'machMax' : 1.7,    'loadFactorMax' : 10.0,    'rangeMax' : 10000.0,
+    'g_fov' : 4.0,      'g_lockAngleMax' : 5.0,    'g_angleMax' : 25.0,    'g_rateMax' : 11.0,
+    'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 11.0,    'g_ga_baseIndSpeed' : 1800.0,
+    'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.001,
+    'tb0_altitude' : 0.0,    'tb0_fighterMach' : [1.2,0.8], 'tb0_targetMach' : [0.9,0.8], 'tb0_rangeMin' : [500,3700,400,2500], 'tb0_rangeMax' : [2000,2600,1600,1800], 'tb0_altdiff' : [500,1000],
+    'tb1_altitude' : 6000.0, 'tb1_fighterMach' : [1.2,0.8], 'tb1_targetMach' : [0.9,0.8], 'tb1_rangeMin' : [500,3700,400,2500], 'tb1_rangeMax' : [3800,4800,2900,3300], 'tb1_altdiff' : [500,1000],
+    'proximityFuse_radius' : 5.0
+}
 # missile1 : sidewinder AIM-9D
 missile1 = {
     'name' : 'AIM-9D',
@@ -55,11 +68,22 @@ missile4 = {
 }
 #*------------------------------------------------------------------------------------
 # thrust, afterburner thrust, enginecount
+target0 = {
+    'name' : 'Dummy Target',
+    'mass' : 1000, #kg
+    'maxspeed' : 1, #m/s (1332kmh)
+    'Thrust' : 10000,
+    'AfterburnerBoost' : 1.1,
+    'ThrustMult' : 1.5,
+    'enginecount' : 1,
+    'flareBrightness' : 10000.0,
+    'flareLiveTime' : 4.4
+}
 # F-4E
 target1 = {
     'name' : 'F-4E',
     'mass' : 20000, #kg
-    'maxspeed' : 370, #m/s (1332kmh)
+    'maxspeed' : 350, #m/s (1260kmh)
     'Thrust' : 2600,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.4,
@@ -71,7 +95,7 @@ target1 = {
 target2 = {
     'name' : 'Mig-23MLD',
     'mass' : 14000, #kg,
-    'maxspeed' : 370, #m/s (1332kmh)
+    'maxspeed' : 360, #m/s (1296kmh)
     'Thrust' : 6057.0601,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.32,
@@ -114,10 +138,10 @@ w_storm = 600
 ## sample of dots
 #RANGEMAX = 5000
 #RANGE_HOP = 500
-TIMEMAX = 10
+TIMEMAX = 12
 #TIME_HOP = 1/m['g_rateMax']
 #30fps?
-FPS = 30
+FPS = 60
 MaxFrame = TIMEMAX*FPS
 dt = 1/FPS
 
