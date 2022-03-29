@@ -15,11 +15,11 @@ from mObjects import Vec3D as vec3
 #===============================================
 #-----------------------------------------------
 
-target =  mobj.TargetObject(data=data.target1,    pVec = vec3(3000,0,3000),  vVec=vec3(280, 0, 0) )
-missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=vec3(3000,0,3000) )
+target =  mobj.TargetObject(data=data.target1,    pVec = vec3(2500,0,3000),  vVec=vec3(280, 0, 0) )
+missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=vec3(2500,0,3000) )
 
 flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
-flareTimes = [0.0,7.0]
+flareTimes = [1.5]
 flares = [ mobj.FlareObject(data=flareTypeData) for i in range(len(flareTimes)) ]
 
 ## list of [list of [SimObjects per frame]]...
@@ -85,8 +85,8 @@ def genTextStr(obj):
         mach = round(data.calcMach(obj.vVec.norm(),obj.pVec.z),1)
         speed = round(obj.vVec.norm()/0.277,1)
         return  obj.data['name']+'\n'+\
-            'Speed: ' + str(speed)+'km/h'+\
-            'Mach: ' + str(mach)+'\n'
+            'Speed: ' + str(speed)+'km/h\n'+\
+            'Mach: ' + str(mach)
     elif type(obj) == mobj.FlareObject: 
         return  obj.data['name']
     else:
@@ -152,6 +152,6 @@ animation = ani.FuncAnimation(
     interval = 1000/data.FPS
 )
 #FFwriter=ani.FFMpegWriter(fps=15, extra_args=['-vcodec', 'libx264'])
-FFwriter=ani.FFMpegWriter(fps=15)
+FFwriter=ani.FFMpegWriter(fps=10)
 #animation.save('test.mp4',writer = FFwriter)
 plt.show()

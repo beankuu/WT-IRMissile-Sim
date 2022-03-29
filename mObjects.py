@@ -3,7 +3,7 @@ import numpy as np
 import copy
 
 # custom
-import data #data.INFINITE
+from data import INFINITE as INFINITE #data.INFINITE
 
 class Vec3D:
     # P = list(3) or Vec3D(3) ...
@@ -53,7 +53,7 @@ class Vec3D:
         if type(other) is not int and type(other) is not float and type(other) is not np.float64:
             raise TypeError('Vec3D div does not support'+str(type(other))+'.\nonly supports scalar(int or float) operations.')
         # some big number
-        divider = data.INFINITE if other == 0 else other
+        divider = INFINITE if other == 0 else other
         return Vec3D(self.x/divider, self.y/divider, self.z/divider)
     def __itruediv__(self,other):
         return self / other
@@ -166,7 +166,8 @@ class TargetObject(SimObject):
 # same as SimObject?
 class FlareObject(SimObject):
     def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, firedAt=None):
-        super().__init__(pVec,vVec,aVec,fVec,upVec,data)
+        newpVec = Vec3D(INFINITE,INFINITE,INFINITE) if pVec == None else pVec
+        super().__init__(newpVec,vVec,aVec,fVec,upVec,data)
         self.isFired = False
         self.isOff = False
     def clone(self):

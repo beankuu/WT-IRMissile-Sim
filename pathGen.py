@@ -12,8 +12,8 @@ def genTargetMovement1(t,frame):
     gravity = data.getGravity(t.pVec.z)
 
     ROTATION_RADIUS = 30
-    accel_wanted = t.vVec.normalize()
-    accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(60),'z')
+    accel_wanted = t.fVec.normalize()
+    accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(40),'z')
     accel_wanted = accel_wanted.rotate(np.radians(-20),'x')
     #accel_wanted *= ROTATION_RADIUS
     #t.upVec = t.upVec.rotate(angle_inc_per_frame,'z')
@@ -24,7 +24,7 @@ def genTargetMovement1(t,frame):
         t.aVec = accel_wanted
     
     accel_Thrust = vec3() #Thrust # !temporary
-    accel_Drag = -t.vVec.normalize() #Drag # !temporary
+    accel_Drag = -t.fVec.normalize()*40 #Drag # !temporary
     accel_Lift = vec3() #0
     accel_Gravity = vec3() #0
     accel_balance = (accel_Thrust+accel_Drag + accel_Lift+accel_Gravity)
@@ -49,7 +49,7 @@ def genFlareTrajectory(flare,f,flareStartTime,target):
     OUT: FlareObject at given frame
     """
     startFrame = flareStartTime/data.dt
-    endFrame = (flareStartTime+flare.data['flareLiveTime'])/data.dt
+    endFrame = (flareStartTime+flare.data['timeLife'])/data.dt
     if flare.isFired == False and startFrame <= f:
         flare.pVec = target.pVec
         flare.isFired = True

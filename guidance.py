@@ -69,7 +69,7 @@ def getAccel(m,time,autoReqAccel):
 
 ##band 2(airframe)
 
-def seeker_simulator(m, f, allObjects):
+def seeker_simulator(m, allObjects):
     """
     * Seeker Simulator
     - IN(Fixed): fov, angleMax, angleMax
@@ -82,11 +82,13 @@ def seeker_simulator(m, f, allObjects):
     # 1. select target from list, which is in fov range
     targetList = []
     for obj in objects:
+        calcRange = (obj.pVec - m.pVec).norm()
         calcFov = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
-        if  calcFov <= m.data['g_fov']:
+        if  calcFov <= m.data['g_fov'] and calcRange <= m.data['rangeBand0']:
             targetList.append(obj)
-
-    # 2. from targetlist, get brightest(1) and nearset(2) from center
+    
+    # 2. from targetlist, ignore brightness below 1
+    """
     brightness = 1 # minimum
     brightestTargets = [] #obj, brightness
     for obj in targetList:
@@ -94,26 +96,40 @@ def seeker_simulator(m, f, allObjects):
         if type(obj) == mobj.FlareObject: 
             brightness = obj.data['flareBrightness']
         elif type(obj) == mobj.TargetObject: 
-            brightness = getThrust(m, f)*data.thrustKgsToInfraRedBrightness
+            thrust = obj.data['Thrust']
+            brightness = thrust*data.thrustKgsToInfraRedBrightness
         # brightness decreases 1/r^2
-            brightness=1000/(dist*dist)
-        if not brightestTargets or brightestTargets[0][1] < brightness:
-            brightestTargets = [[obj, brightness]]; break
-        elif brightestTargets[0][1] == brightness:
-            brightestTargets.append([obj, brightness])
-    # GO STRAIGHT
-    if not brightestTargets:
+        brightness*=1000/(dist*dist)
+        #if brightness < 1: continue
+        #else: brightestTargets.append(obj)
+        
+        #if empty then add
+        if not brightestTargets:
+            brightestTargets=[[obj, brightness]]; continue
+        else:
+            for tempObj,tempBrightness in brightestTargets:
+                if tempObj != obj:
+                    if tempBrightness < brightness:
+                        brightestTargets = [[obj, brightness]]; break
+                    elif tempBrightness == brightness:
+                        brightestTargets.append([obj, brightness])
+        """
+    #targetList = [elm[0] for elm in brightestTargets]
+    #targetList = brightestTargets
+    print(targetList)
+    # no target? get out
+    if not targetList:
         return m.sVec, False
-
+    ## 3. get nearset(2) from center
     angle = data.INFINITE
-    target = brightestTargets[0][0]
-    for obj, brightness in brightestTargets:
+    target = targetList[0]
+    for obj in targetList:
         newAngle = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
         if newAngle < angle:
             angle = newAngle
             target = obj
     
-    # 3. get target angle
+    # 4. get target angle
     target_angle = np.rad2deg(np.arccos(m.sVec.dot(m.vVec.normalize())))
     if np.abs(target_angle) <= m.data['g_angleMax']:
         return (target.pVec - m.pVec).normalize(), True
@@ -167,7 +183,7 @@ def getMissileData(m,frame,allObjects):
     OUT: MissileObject at given frame
     """
     #1. GET TARGET
-    newSVec, m.isLocked = seeker_simulator(m,frame,allObjects)
+    newSVec, m.isLocked = seeker_simulator(m,allObjects)
     #2. Acceleration Request
     PIDResult = PID(newSVec-m.sVec,m)
     aCal = PN(m.data['g_ga_propNavMult'],

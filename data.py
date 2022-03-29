@@ -12,7 +12,7 @@ missile0 = {
     'name' : 'AIM-9B',
     'caliber' : 0.127,    'mass' : 72.57,   'massEnd' : 55.8,    'dragCx' : 0.018,    'length' : 2.83,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
     'CxK' : 3.3,    'finsAoA' : 0.16,    'force' : 17263.0,    'timeFire' : 2.2,     'endSpeed' : 1000.0,    'timeLife' : 20.0,    
-    'machMax' : 1.7,    'loadFactorMax' : 10.0,    'rangeMax' : 10000.0,
+    'machMax' : 1.7,    'loadFactorMax' : 10.0,    'rangeBand0' : 4000.0,
     'g_fov' : 4.0,      'g_lockAngleMax' : 5.0,    'g_angleMax' : 25.0,    'g_rateMax' : 11.0,
     'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 11.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.001,
@@ -25,7 +25,7 @@ missile1 = {
     'name' : 'AIM-9D',
     'caliber' : 0.127,    'mass' : 88.45,   'massEnd' : 55.8,    'dragCx' : 0.018,    'length' : 3.0,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.01,    
     'CxK' : 4.2,    'finsAoA' : 0.18,    'force' : 13070,    'timeFire' : 5.0,  'endSpeed' : 1000,    'timeLife' : 60.0,    
-    'machMax' : 2.5,    'loadFactorMax' : 18.0,    'rangeMax' : 18000.0,
+    'machMax' : 2.5,    'loadFactorMax' : 18.0,    'rangeBand0' : 5500.0,
     'g_fov' : 2.5,    'g_lockAngleMax' : 10.0,    'g_angleMax' : 40.0,    'g_rateMax' : 12.0, 
     'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 18.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.001,
@@ -39,7 +39,7 @@ missile2 = {
     'name' : 'R-60',
     'caliber' : 0.12,    'mass' : 44.0,   'massEnd' : 34.0,    'dragCx' : 0.015,    'length' : 2.1,    'wingAreamult' : 1.25,    'distFromCmToStab' : 0.06,    
     'CxK' : 3.1,    'finsAoA' : 0.18,    'force' : 9500,    'timeFire' : 3.0,   'endSpeed' : 0,    'timeLife' : 21.0,    
-    'machMax' : 2.5,    'loadFactorMax' : 30.0,    'rangeMax' : 8000.0,
+    'machMax' : 2.5,    'loadFactorMax' : 30.0,    'rangeBand0' : 5000.0,
     'g_ga_timeOut' : 0.35,  'g_fov' : 5.0,    'g_lockAngleMax' : 12.0,    'g_angleMax' : 45.0,    'g_rateMax' : 35.0,
     'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 30.0,    'g_ga_baseIndSpeed' : 1700.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.5,    'g_ga_accelControlDiff' : 0.001,
@@ -52,7 +52,7 @@ missile3 = {
     'name' : 'PL-5B',
     'caliber' : 0.127,    'mass' : 84.0,   'massEnd' : 59.7,    'dragCx' : 0.018,    'length' : 2.1,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
     'CxK' : 3.3,    'finsAoA' : 0.18,    'force' : 36000,    'timeFire' : 2.0,     'endSpeed' : 1000.0,    'timeLife' : 40.0,    
-    'machMax' : 2.2,    'loadFactorMax' : 20.0,    'rangeMax' : 16000.0,
+    'machMax' : 2.2,    'loadFactorMax' : 20.0,    'rangeBand0' : 5500.0,
     'g_fov' : 2.4,    'g_lockAngleMax' : 25.0,    'g_angleMax' : 40.0,    'g_rateMax' : 20.0,
     'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 20.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.002,
@@ -65,7 +65,7 @@ missile4 = {
     'name' : 'AIM-9L',
     'caliber' : 0.127,    'mass' : 84.46,   'massEnd' : 57.06,    'dragCx' : 0.018,    'length' : 2.85,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
     'CxK' : 4.1,    'finsAoA' : 0.2,    'force' : 12000,    'timeFire' : 5.3,     'endSpeed' : 1000.0,    'timeLife' : 60.0,    
-    'machMax' : 2.5,    'loadFactorMax' : 30.0,    'rangeMax' : 18000.0,
+    'machMax' : 2.5,    'loadFactorMax' : 30.0,    'rangeBand0' : 6000.0,
     'g_fov' : 2.5,    'g_lockAngleMax' : 17.0,    'g_angleMax' : 45.0,    'g_rateMax' : 35.0,
     'g_ga_timeOut' : 0.5, 'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 30.0,    'g_ga_baseIndSpeed' : 1440.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.003,
@@ -111,12 +111,12 @@ target2 = {
 flare0 = {
     'name' : 'flare',
     'flareBrightness' : 1000.0,
-    'flareLiveTime' : 3 #should be 4.4
+    'timeLife' : 4.4 #should be 4.4
 }
 flare1 = {
     'name' : 'flare_big',
     'flareBrightness' : 4500.0,
-    'flareLiveTime' : 4.4
+    'timeLife' : 4.4
 }
 #!===================================================
 thrustKgsToInfraRedBrightness = 1.0
