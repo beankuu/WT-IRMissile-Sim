@@ -1,21 +1,14 @@
-from tkinter import RIGHT
 import numpy as np
 
 # customs
 import guidance as guide # for missile guidance
 
 import data
-import calculate as calc
-import mObjects as obj
+import mObjects as mobj
 from mObjects import Vec3D as vec3
 
 #===============================================
-# some fixed values
-#-----------------------------------------------
-INIT_MISSILE_POSITION=[0,0,3000]   # m
-
-#===============================================
-def genTargetMovement1(t,frame,dt,duration):
+def genTargetMovement1(t,frame):
     gravity = data.getGravity(t.pVec.z)
 
     ROTATION_RADIUS = 30
@@ -35,52 +28,67 @@ def genTargetMovement1(t,frame,dt,duration):
     accel_Lift = vec3() #0
     accel_Gravity = vec3() #0
     accel_balance = (accel_Thrust+accel_Drag + accel_Lift+accel_Gravity)
+
     t.aVec += accel_balance
-    t.vVec += t.aVec*dt #dt == 1 frame
+    t.pVec += t.vVec*data.dt + 0.5*t.aVec*data.dt*data.dt
+    t.vVec += t.aVec*data.dt #dt == 1 frame
     if t.vVec.norm() > t.data['maxspeed']:
         t.vVec = t.data['maxspeed']*t.vVec.normalize()
-    t.pVec += t.vVec*dt #dt == 1 frame #+ 0.5*t.aVec
     return t
 #*----------------------------------------------------------------------
-def genTargetTrajectory(target,dt,maxFrame):
-    #----------------------------------------
-    t = target
-    t.fire_flare_at = 3 #s
+def genTargetTrajectory(target,f):
+    """
+    IN: TargetObject, Framenumber, list of all objects(for seeker_simulator)
+    OUT: TargetObject at given frame
+    """
+    return genTargetMovement1(target,f).clone()
+#===============================================================
+def genFlareTrajectory(flare,f,flareStartTime,target):
+    """
+    IN: FlareObject, Framenumber(int), flareStartTime(float), targetObject
+    OUT: FlareObject at given frame
+    """
+    startFrame = flareStartTime/data.dt
+    endFrame = (flareStartTime+flare.data['flareLiveTime'])/data.dt
+    if flare.isFired == False and startFrame <= f:
+        flare.pVec = target.pVec
+        flare.isFired = True
+    elif endFrame >= f:
+        flare.isOff = True
+    else:
+        flare.pVec = vec3(data.INFINITE,data.INFINITE,data.INFINITE)
+    return flare.clone()
+#===============================================================
+def genMissileTrajectory(missile,f,allObjects):
+    """
+    IN: MissileObject, Framenumber, all objects at current frame=[target,flares]
+    OUT: MissileObject at given frame
+    """
+    return guide.getMissileData(missile,f,allObjects).clone()
+#===============================================================
+def genPaths(target,missile,flaredataflares):
+    """
+    IN: targetObject, missileObject, [flare(type)Data, flareTimeList]
+    OUT: targetData, missileData, flareData
+    """
+    flares, flareTimes = flaredataflares
 
-    #horizontal coordinate(r,inclination[-pi/2~pi/2],azimuth), degree
-    t.pVec.setSphericalDegree([2500, -10, -10])
-    t.pVec += INIT_MISSILE_POSITION
-    # fly straight parallel to x axis! 280m/s = 1008kmh
-    t.fVec = vec3(1,0,0)
-    t.vVec = vec3(280, 0, 0)    #s.rotate(np.radians(30),'z')
-
-    # 1. fly straight parallel to x axis, until reaction time
-    REACTION_TIME = 1.0 #s
+    targetData = []
+    missileData = []
+    flaresData = [ [] for i in range(len(flareTimes)) ]
+    ## per frame
     f = 0
-    while f*dt < REACTION_TIME:
-        t.pVec += t.vVec*dt
-        yield t.clone()
-        f += 1
+    while f < data.MaxFrame:
+        ## calculate
+        target = genTargetTrajectory(target,f)
+        for i in range(len(flareTimes)):
+            flares[i] = genFlareTrajectory(flares[i],f,flareTimes[i],target)
+        missile = genMissileTrajectory(missile,f,[target,flares])
+        ## append
+        targetData.append(target)
+        for i in range(len(flareTimes)):
+            flaresData[i].append(flares[i])
+        missileData.append(missile)
 
-    # 2. some movement after reaction time
-    startFrame = f*dt
-    endFrame = maxFrame
-    while f < maxFrame:
-        t = genTargetMovement1(t,f, dt, [startFrame,endFrame])
-        yield t.clone()
         f += 1
-#*===============================================================
-def genMissileTrajectory(missile, dt, maxFrame, targetDataList):
-    m = missile
-    m.pVec += INIT_MISSILE_POSITION
-    m.intgK = m.data['g_ga_accelControlIntg']
-
-    m.sVec = (targetDataList[0].pVec-m.pVec).normalize()
-    m.fVec = m.sVec.normalize() #front towards target
-
-    f = 0
-    while f < maxFrame:
-        m = guide.getMissileData(m,targetDataList[f],f,dt)
-        yield m.clone()
-        f += 1
-    #"""
+    return targetData, missileData, flaresData

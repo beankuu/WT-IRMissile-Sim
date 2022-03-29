@@ -3,7 +3,7 @@ import numpy as np
 import copy
 
 # custom
-import data
+import data #data.INFINITE
 
 class Vec3D:
     # P = list(3) or Vec3D(3) ...
@@ -13,7 +13,7 @@ class Vec3D:
         self.z = 0 if z == None else z
     # +
     def __add__(self, other):
-        if isinstance(other, Vec3D):
+        if type(other) is Vec3D: #typeother?
             return Vec3D(self.x + other.x, self.y + other.y, self.z + other.z)
         elif type(other) is int or type(other) is float or type(other) is np.float64:
             return Vec3D(self.x + other,self.y + other, self.z + other)
@@ -27,7 +27,7 @@ class Vec3D:
         return self
     # -
     def __sub__(self, other):
-        if isinstance(other, Vec3D):
+        if type(other) is Vec3D: #isinstance?
             return Vec3D(self.x - other.x, self.y - other.y, self.z - other.z)
         elif type(other) is int or type(other) is float or type(other) is np.float64:
             return Vec3D(self.x - other, self.y - other, self.z - other)
@@ -59,8 +59,10 @@ class Vec3D:
         return self / other
     # ==
     def __eq__(self, other):
-        if isinstance(other, Vec3D):
+        if type(other) is Vec3D:
             return self.x == other.x and self.y == other.y and self.z == other.z
+        elif other == None:
+            return False
         else:
             return self.x == other[0] and self.y == other[1] and self.z == other[2]
     def __req__(self,other):
@@ -144,28 +146,38 @@ class SimObject:
     # position(pVec), velocity(vVec), acceleration(aVec), frontwards(fVec), upwards(upVec), data dictionary(dataDict)
     def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None):
         self.pVec = Vec3D() if pVec == None else pVec
-        self.vVec = Vec3D() if vVec == None else vVec
+        self.vVec = Vec3D(1,0,0) if vVec == None else vVec
         self.aVec = Vec3D() if aVec == None else aVec
-        self.fVec = Vec3D(1,0,0) if fVec == None else fVec
-        self.upVec = Vec3D(0,0,1) if upVec == None else upVec
+        self.fVec = Vec3D(1,0,0) if fVec == None else fVec.normalize()
+        self.upVec = Vec3D(0,0,1) if upVec == None else upVec.normalize()
         self.data = {} if data == None else data
     def clone(self):
         return copy.deepcopy(self)
 
-# same?
+# (1x SimObject), 1x fireFlareAt[float,...], 1x isAfterburnerOnAt[[float,float],...]
 class TargetObject(SimObject):
-    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, fire_flare_at=None):
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, fireFlareAt=None, isAfterburnerOnAt=None):
         super().__init__(pVec,vVec,aVec,fVec,upVec,data)
-        self.fire_flare_at = 0.0 if fire_flare_at == None else fire_flare_at
+        self.fireFlareAt = [] if fireFlareAt == None else fireFlareAt
+        self.isAfterburnerOnAt = [] if isAfterburnerOnAt == None else isAfterburnerOnAt
+    def clone(self):
+        return copy.deepcopy(self)
+
+# same as SimObject?
+class FlareObject(SimObject):
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, firedAt=None):
+        super().__init__(pVec,vVec,aVec,fVec,upVec,data)
+        self.isFired = False
+        self.isOff = False
     def clone(self):
         return copy.deepcopy(self)
 
 # (1x SimObject), 1x seekerVec, booleans...
 class MissileObject(SimObject):
     # ...seeker direction(sVec), acceleration(aVec)
-    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, sVec=None, data=None):
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec=None, upVec=None, sVec=None, data=None):
         super().__init__(pVec,vVec,aVec,fVec,upVec,data)
-        self.sVec = Vec3D() if sVec == None else sVec
+        self.sVec = Vec3D() if sVec == None else (sVec-pVec).normalize()
         self.isLocked = True
         self.isMaxG = False
         #self.isMaxSpeed = False #?? (always Thrust > MaxSpeed)

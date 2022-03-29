@@ -1,6 +1,13 @@
 # bunch of hardcoded datas + helper functions
 INFINITE = 2147483647
-# missile0 : Dummy Missile! based on AIM-9B
+
+TIMEMAX = 12
+FPS = 30
+MaxFrame = TIMEMAX*FPS
+dt = 1/FPS
+
+#!===================================================
+# missile0 : AIM-9B
 missile0 = {
     'name' : 'AIM-9B',
     'caliber' : 0.127,    'mass' : 72.57,   'massEnd' : 55.8,    'dragCx' : 0.018,    'length' : 2.83,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
@@ -66,7 +73,7 @@ missile4 = {
     'tb1_altitude' : 6000.0, 'tb1_fighterMach' : [1.2,0.8], 'tb1_targetMach' : [0.8,0.8], 'tb1_rangeMin' : [600.0,3000.0,500.0,2100.0], 'tb1_rangeMax' : [5400.0,8500.0,4800.0,6400.0], 'tb1_altdiff' : [500.0,1000.0],
     'proximityFuse_radius' : 5.0
 }
-#*------------------------------------------------------------------------------------
+#!------------------------------------------------------------------------------------
 # thrust, afterburner thrust, enginecount
 target0 = {
     'name' : 'Dummy Target',
@@ -76,8 +83,7 @@ target0 = {
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.5,
     'enginecount' : 1,
-    'flareBrightness' : 10000.0,
-    'flareLiveTime' : 4.4
+    'flareType' : 1
 }
 # F-4E
 target1 = {
@@ -88,8 +94,7 @@ target1 = {
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.4,
     'enginecount' : 2,
-    'flareBrightness' : 1000.0,
-    'flareLiveTime' : 4.4
+    'flareType' : 0
 }
 # mig-23MLD
 target2 = {
@@ -100,10 +105,20 @@ target2 = {
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.32,
     'enginecount' : 1,
+    'flareType' : 1
+}
+#!------------------------------------------------------------------------------------
+flare0 = {
+    'name' : 'flare',
+    'flareBrightness' : 1000.0,
+    'flareLiveTime' : 3 #should be 4.4
+}
+flare1 = {
+    'name' : 'flare_big',
     'flareBrightness' : 4500.0,
     'flareLiveTime' : 4.4
 }
-#*------------------------------------------------------------------------------------
+#!===================================================
 thrustKgsToInfraRedBrightness = 1.0
 afterburnerThrustKgsToInfraRedBrightness = 4.5
 EngineIRMultFront = 0.0006
@@ -130,24 +145,9 @@ w_storm = 600
 
 #envAddWhiteTemp = w_cloudy
 """
-#*------------------------------------------------------------------------------------
-#m = missile2
-#t = target1
-
-## need for every 100ms 
-## sample of dots
-#RANGEMAX = 5000
-#RANGE_HOP = 500
-TIMEMAX = 12
-#TIME_HOP = 1/m['g_rateMax']
-#30fps?
-FPS = 60
-MaxFrame = TIMEMAX*FPS
-dt = 1/FPS
-
 #!===============================================================
-# other CALCULATIONS
-#!===============================================================
+# other Datas and calculations
+#----------------------------------------------------------------
 #https://www.engineeringtoolbox.com/standard-atmosphere-d_604.html
 # Air Density table
 airDensityList = [
@@ -173,25 +173,23 @@ temperatureList = [
     (15000, -56.50), (20000, -56.50), (25000,-51.60),  (30000, -46.64),  (40000, -22.80),
     (50000, -2.5), (60000,-26.13), (70000,-53.57), (80000, -74.51)
 ]
-def getLinear(lst,nearkey):
+def calcLinear(lst,nearkey):
     index = min(range(len(lst)),key=lambda i: abs(lst[i][0]-nearkey))
     if index == 0 : index += 1
     aH = lst[index][0];   aV = lst[index][1]
     bH = lst[index-1][0]; bV = lst[index-1][1]
     return bV + (nearkey-bH)*((bV-aV)/(bH-aH))
+
 # height(m)
 def getAirDensity(height):
-    return getLinear(airDensityList,height)
-
+    return calcLinear(airDensityList,height)
 # acceleration(m/s^2) height(m)
 def getGravity(height):
-    return getLinear(gravityList,height)
-
+    return calcLinear(gravityList,height)
 # height(m) temperature(C)
 def getTemperatureAtHeight(height):
-    return getLinear(temperatureList,height)
+    return calcLinear(temperatureList,height)
 
-#-----------------------------------------------------------
 def calcMach(velocity, height):
     #http://www.aerospaceweb.org/question/atmosphere/q0126.shtml
     # mach = velocity / sound_speed_at_given_altitude
