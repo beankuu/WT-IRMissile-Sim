@@ -4,12 +4,13 @@ import data
 
 def init(plot,datapack):
     targetData, missileData = datapack
-    missile_speedData = [round(elm.vVec.norm()/0.2777,2) for elm in missileData]
-    target_speedData = [round(elm.vVec.norm()/0.2777,2) for elm in targetData]
-    plot.set_xlim([0,data.MaxFrame])
+    missile_speedData = [elm.vVec.norm()/0.2777 for elm in missileData]
+    target_speedData = [elm.vVec.norm()/0.2777 for elm in targetData]
+    
+    plot.set_xlim([0,data.TIMEMAX])
     plot.set_ylim([0,max(missile_speedData)+200])
 
-    plot.set_xlabel('시간(frame)')
+    plot.set_xlabel('시간(s)')
     plot.set_ylabel('속도(km/h)')
 
     #==================================================================
@@ -19,6 +20,7 @@ def init(plot,datapack):
 #-----------------------------------------------------------
 def update(frame,ax,simPlots):
     data1,line1, data2,line2 = simPlots
-    line1.set_data([range(frame)],data1[:frame])
-    line2.set_data([range(frame)],data2[:frame])
+    timeList = [x * data.dt for x in range(0, frame)]
+    line1.set_data(timeList,data1[:frame])
+    line2.set_data(timeList,data2[:frame])
     
