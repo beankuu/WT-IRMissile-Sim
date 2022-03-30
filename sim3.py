@@ -9,8 +9,8 @@ def init(plot,datapack):
     targetData,missileData,flaresData = datapack
     maxAngle = missileData[0].data['g_fov']/2
     maxRange =  missileData[0].data['rangeBand0']
-    plot.set_xlim([-maxAngle,maxAngle])
-    plot.set_ylim([-maxAngle,maxAngle])
+    plot.set_xlim([-maxAngle*1.5,maxAngle*1.5])
+    plot.set_ylim([-maxAngle*1.5,maxAngle*1.5])
     plot.set_xlabel('fov')
     plot.set_ylabel('fov')
     #=================================================================
@@ -28,18 +28,20 @@ def init(plot,datapack):
     newTargetPath = []
     newFlaresPath = [ [] for i in range(len(flaresData)) ]
 
-    xymultiplier = maxAngle/2
+    xymultiplier = maxAngle
     for i in range(data.MaxFrame):
         m = missileData[i]
         t = targetData[i]
+        rightVec = m.upVec.cross(m.sVec)
         diffVec = t.pVec - m.pVec
         calcRange = diffVec.norm()
-        #calcAngle = np.rad2deg(np.arccos(diffVec.normalize().dot(m.fVec)))
+        diffNormalized = diffVec.normalize()
+        calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.sVec)))
 
-        if calcRange <= maxRange:
-            rT = diffVec
-            #rT = rT.dot(m.fVec)*m.fVec
-            newTargetPath.append([-xymultiplier*rT.y,xymultiplier*rT.z])
+        if calcAngle <= 1.5*maxAngle and calcRange <= maxRange:
+            newX = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))
+            newY = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))
+            newTargetPath.append([-newX,newY])
         else:
             if i == 0:
                 newTargetPath.append([0,0])
@@ -51,14 +53,15 @@ def init(plot,datapack):
             fl = flaresData[fi][i]
             diffVec = (fl.pVec - m.pVec)
             calcRange = diffVec.norm()
-            #calcAngle = np.rad2deg(np.arccos(diffVec.normalize().dot(m.fVec)))
-            if calcRange <= maxRange:
-                rT = diffVec
-                #rT = rT.dot(m.fVec)*m.fVec
-                newFlaresPath[fi].append([-xymultiplier*rT.y,xymultiplier*rT.z])
+            diffNormalized = diffVec.normalize()
+            calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.sVec)))
+
+            if calcAngle <= 1.5*maxAngle and calcRange <= maxRange:
+                newX = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))
+                newY = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))
+                newFlaresPath[fi].append([-newX,newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
-    #print(newTargetPath[:data.MaxFrame//2],'\n',newFlaresPath[:data.MaxFrame//2])
     #==================================================================
     #-----------------------------------------------------------
     # list of objects to Plot
