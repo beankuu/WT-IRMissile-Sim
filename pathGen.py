@@ -13,7 +13,7 @@ def genTargetMovement1(t,frame):
 
     ROTATION_RADIUS = 30
     accel_wanted = t.fVec.normalize()
-    accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(40),'z')
+    accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(20),'z')
     accel_wanted = accel_wanted.rotate(np.radians(-20),'x')
     #accel_wanted *= ROTATION_RADIUS
     #t.upVec = t.upVec.rotate(angle_inc_per_frame,'z')
@@ -34,6 +34,7 @@ def genTargetMovement1(t,frame):
     t.vVec += t.aVec*data.dt #dt == 1 frame
     if t.vVec.norm() > t.data['maxspeed']:
         t.vVec = t.data['maxspeed']*t.vVec.normalize()
+    t.fVec = t.vVec.normalize()
     return t
 #*----------------------------------------------------------------------
 def genTargetTrajectory(target,f):

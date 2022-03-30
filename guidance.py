@@ -83,12 +83,12 @@ def seeker_simulator(m, allObjects):
     targetList = []
     for obj in objects:
         calcRange = (obj.pVec - m.pVec).norm()
-        calcFov = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
-        if  calcFov <= m.data['g_fov'] and calcRange <= m.data['rangeBand0']:
+        calcAngle = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
+        if calcAngle <= m.data['g_fov']/2 and calcRange <= m.data['rangeBand0']:
             targetList.append(obj)
     
     # 2. from targetlist, ignore brightness below 1
-    """
+    #"""
     brightness = 1 # minimum
     brightestTargets = [] #obj, brightness
     for obj in targetList:
@@ -99,7 +99,7 @@ def seeker_simulator(m, allObjects):
             thrust = obj.data['Thrust']
             brightness = thrust*data.thrustKgsToInfraRedBrightness
         # brightness decreases 1/r^2
-        brightness*=1000/(dist*dist)
+        brightness*=1/(dist*dist)
         #if brightness < 1: continue
         #else: brightestTargets.append(obj)
         
@@ -113,7 +113,7 @@ def seeker_simulator(m, allObjects):
                         brightestTargets = [[obj, brightness]]; break
                     elif tempBrightness == brightness:
                         brightestTargets.append([obj, brightness])
-        """
+        #"""
     #targetList = [elm[0] for elm in brightestTargets]
     #targetList = brightestTargets
     print(targetList)
