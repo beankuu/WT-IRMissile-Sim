@@ -13,6 +13,10 @@ def init(plot,datapack):
     plot.set_xlabel('시간(s)')
     plot.set_ylabel('속도(km/h)')
 
+    # to right side
+    plot.yaxis.tick_right()
+    plot.yaxis.set_label_position("right")
+
     #==================================================================
     missile_lineplot, = plot.plot(0,0,color='red')
     target_lineplot, = plot.plot(0,0,color='blue')

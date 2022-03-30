@@ -11,6 +11,10 @@ def init(plot,datapack):
     plot.set_xlabel('시간(s)')
     plot.set_ylabel('K_i(유도 적분상수)')
 
+    # to right side
+    plot.yaxis.tick_right()
+    plot.yaxis.set_label_position("right")
+
     #==================================================================
     lineplot, = plot.plot(0,0,color='green')
     return [k_iData,lineplot]
