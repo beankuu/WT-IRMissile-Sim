@@ -1,17 +1,22 @@
 ## up left 3D graph, simulating entire view
 import mObjects as mobj
 import data
+import numpy as np
 
 def init(plot,datapack):
     targetData,missileData,flaresData = datapack
 
     plot.set_xlim3d([0,7000])
-    plot.set_ylim3d([-100,500])
-    plot.set_zlim3d([2500,3000])
+    plot.set_ylim3d([-50,200])
+    plot.set_zlim3d([2700,3000])
 
     plot.set_xlabel('거리(m)')
     plot.set_ylabel('거리(m)')
     plot.set_zlabel('고도(m)')
+
+    plot.tick_params(axis='x',labelsize='x-small')
+    plot.tick_params(axis='y',labelsize='x-small')
+    plot.tick_params(axis='z',labelsize='x-small')
 
     #==================================================================
     text_frame_now = plot.text3D(plot.get_xlim3d()[0],
@@ -21,13 +26,13 @@ def init(plot,datapack):
     # list of objects to Plot
     ## PlotObjects related to Target Object
     color = 'blue'
-    targetObjects = [plot.plot(0,0,0, color=color),
-                        plot.text3D(0,0,0,'', color=color, size='x-small'),
+    targetObjects = [plot.plot(0,0,0, color=color,linewidth=0.5),
+                        plot.text3D(0,0,0,'', color=color, size='small'),
                         targetData]
 
     color = 'red'
-    missileObjects = [plot.plot(0,0,0, color=color),
-                        plot.text3D(0,0,0,'', color=color, size='x-small'),
+    missileObjects = [plot.plot(0,0,0, color=color,linewidth=0.5),
+                        plot.text3D(0,0,0,'', color=color, ha='right', size='small'),
                         missileData]
 
     color = 'purple'
@@ -39,18 +44,6 @@ def init(plot,datapack):
                     ]
     return [targetObjects,missileObjects,flareObjects,[text_frame_now]]
 #-----------------------------------------------------------
-def isHit(t, m):
-    mtDistance = (m.pVec-t.pVec).norm()
-    ## Method 1: minimum distance between two vectors
-    #vVecCross = mP.upVec if mP.vVec.normalize() == tP.vVec.normalize() else mP.vVec.normalize().cross(tP.vVec.normalize())
-    #maxDx = (mP.pVec-tP.pVec).dot(vVecCross)/(vVecCross.norm()*vVecCross.norm())
-    ## Method 2: mindist Point + v*dt as radius
-    maxDx = (m.vVec.norm() if t.vVec.norm() < m.vVec.norm() else t.vVec.norm()) * data.dt
-    # missile? or other types?
-    proximityDist = m.data['proximityFuse_radius']
-
-    return mtDistance < proximityDist+maxDx
-
 def resetColor(resetObject,objType):
     if objType == 'target': color = 'blue'
     elif objType == 'missile': color = 'red'
@@ -59,12 +52,20 @@ def resetColor(resetObject,objType):
     resetObject.set_color(color)
 
 def genTextStr(obj):
-    if type(obj) == mobj.TargetObject or type(obj) == mobj.MissileObject:
+    if type(obj) == mobj.TargetObject:
+        mach = round(data.calcMach(obj.vVec.norm(),obj.pVec.z),1)
+        speed = round(obj.vVec.norm()/0.277,1)
+        afText = '\nAF' if obj.isAfterburnerOn else ''
+        return  obj.data['name']+'\n'+\
+            'Mach: ' + str(mach)+'('+str(speed)+'km/h)\n'+\
+            'height: ' + str(round(obj.pVec.z,1))+'m'+\
+            afText
+    elif type(obj) == mobj.MissileObject:
         mach = round(data.calcMach(obj.vVec.norm(),obj.pVec.z),1)
         speed = round(obj.vVec.norm()/0.277,1)
         return  obj.data['name']+'\n'+\
-            'Speed: ' + str(speed)+'km/h\n'+\
-            'Mach: ' + str(mach)
+            'Mach: ' + str(mach)+'('+str(speed)+'km/h)\n'+\
+            'height: ' + str(round(obj.pVec.z,1))+'m'
     elif type(obj) == mobj.FlareObject: 
         return  obj.data['name']
     else:
@@ -108,12 +109,14 @@ def update(frame,ax,simPlots):
         missileObjects[1].set_color('red')
     else:
         missileObjects[1].set_color('grey')
-    if isHit(targetObjectList[frame],missileObjectList[frame]): 
-        targetObjects[1].set_color('grey'); missileObjects[1].set_color('grey')
+    if targetObjectList[frame].isHit:
+        targetObjects[1].set_color('grey');
+    if missileObjectList[frame].isHit: 
+        missileObjects[1].set_color('grey')
     
     #------------------------------------------
     ## rotate graph
-    ax.view_init(elev = 20-10+frame/8, azim=-160+30-frame/3)
+    #ax.view_init(elev = 20-10+frame/5, azim=-160+30-frame/3)
 
     ## do-things at end of frame
     if frame == data.MaxFrame-1:

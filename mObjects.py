@@ -100,7 +100,8 @@ class Vec3D:
         return self * P
     def dot(self, other):
         result = np.dot([self.x,self.y,self.z],[other.x,other.y,other.z])
-        return 0 if np.abs(result) > 1 else result
+        #return 1 if np.abs(result) > 1 else result
+        return result
     def cross(self, other):
         result = np.cross([self.x,self.y,self.z],[other.x,other.y,other.z])
         return Vec3D(result[0],result[1],result[2])
@@ -160,6 +161,8 @@ class TargetObject(SimObject):
         super().__init__(pVec,vVec,aVec,fVec,upVec,data)
         self.fireFlareAt = [] if fireFlareAt == None else fireFlareAt
         self.isAfterburnerOnAt = [] if isAfterburnerOnAt == None else isAfterburnerOnAt
+        self.isAfterburnerOn = False
+        self.isHit = False
     def clone(self):
         return copy.deepcopy(self)
 
@@ -179,6 +182,7 @@ class MissileObject(SimObject):
     def __init__(self, pVec=None, vVec=None, aVec=None, fVec=None, upVec=None, sVec=None, data=None):
         super().__init__(pVec,vVec,aVec,fVec,upVec,data)
         self.sVec = Vec3D() if sVec == None else (sVec-pVec).normalize()
+        self.isHit = False
         self.isLocked = True
         self.isMaxG = False
         #self.isMaxSpeed = False #?? (always Thrust > MaxSpeed)

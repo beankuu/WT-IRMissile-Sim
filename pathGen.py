@@ -1,48 +1,32 @@
+from re import L
 import numpy as np
 
 # customs
 import guidance as guide # for missile guidance
+import targetPath # for target path generation
 
 import data
 import mObjects as mobj
 from mObjects import Vec3D as vec3
 
-#===============================================
-def genTargetMovement1(t,frame):
-    gravity = data.getGravity(t.pVec.z)
+def isHit(t, m):
+    mtDistance = (m.pVec-t.pVec).norm()
+    ## Method 1: minimum distance between two vectors
+    vVecCross = m.upVec if m.vVec.normalize() == t.vVec.normalize() else m.vVec.cross(t.vVec)
+    maxDx = np.abs(vVecCross.dot(m.pVec-t.pVec)/vVecCross.norm())
+    ## Method 2: mindist Point + v*dt as radius
+    #maxDx = (m.vVec.norm() if t.vVec.norm() < m.vVec.norm() else t.vVec.norm()) * data.dt
+    # missile? or other types?
+    proximityDist = m.data['proximityFuse_radius']
+    #print(mtDistance, proximityDist,maxDx)
+    return mtDistance <= proximityDist+2*maxDx #?x2?
 
-    ROTATION_RADIUS = 30
-    accel_wanted = t.fVec.normalize()
-    accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(20),'z')
-    accel_wanted = accel_wanted.rotate(np.radians(-20),'x')
-    #accel_wanted *= ROTATION_RADIUS
-    #t.upVec = t.upVec.rotate(angle_inc_per_frame,'z')
-    
-    if accel_wanted.norm() > 7.5*gravity:
-        t.aVec = 7.5*gravity*accel_wanted.normalize()
-    else:
-        t.aVec = accel_wanted
-    
-    accel_Thrust = vec3() #Thrust # !temporary
-    accel_Drag = -t.fVec.normalize()*40 #Drag # !temporary
-    accel_Lift = vec3() #0
-    accel_Gravity = vec3() #0
-    accel_balance = (accel_Thrust+accel_Drag + accel_Lift+accel_Gravity)
-
-    t.aVec += accel_balance
-    t.pVec += t.vVec*data.dt + 0.5*t.aVec*data.dt*data.dt
-    t.vVec += t.aVec*data.dt #dt == 1 frame
-    if t.vVec.norm() > t.data['maxspeed']:
-        t.vVec = t.data['maxspeed']*t.vVec.normalize()
-    t.fVec = t.vVec.normalize()
-    return t
-#*----------------------------------------------------------------------
 def genTargetTrajectory(target,f):
     """
     IN: TargetObject, Framenumber, list of all objects(for seeker_simulator)
     OUT: TargetObject at given frame
     """
-    return genTargetMovement1(target,f).clone()
+    return targetPath.genTargetMovement1(target,f).clone()
 #===============================================================
 def genFlareTrajectory(flare,f,flareStartTime,target):
     """
@@ -77,6 +61,8 @@ def genPaths(target,missile,flaredataflares):
     targetData = []
     missileData = []
     flaresData = [ [] for i in range(len(flareTimes)) ]
+    
+    wasHit = False
     ## per frame
     f = 0
     while f < data.MaxFrame:
@@ -85,6 +71,10 @@ def genPaths(target,missile,flaredataflares):
         for i in range(len(flareTimes)):
             flares[i] = genFlareTrajectory(flares[i],f,flareTimes[i],target)
         missile = genMissileTrajectory(missile,f,[target,flares])
+        if isHit(target,missile):
+            wasHit = True
+        if wasHit:
+            target.isHit = True; missile.isHit = True
         ## append
         targetData.append(target)
         for i in range(len(flareTimes)):

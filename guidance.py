@@ -1,3 +1,4 @@
+from locale import normalize
 import numpy as np
 
 #customs
@@ -32,33 +33,96 @@ CLMax = 2 * PI * CritAoA(rad)
 
 # add thrust towards forward (vVec)
 def getThrust(m,time):
+    """
+    get Thrust at given time
+    """
     if time <= m.data['timeFire']:
-        mass = m.data['mass']-(m.data['mass']-m.data['massEnd'])*(time/m.data['timeFire'])
-        return (m.data['force']/mass) *m.fVec.normalize()
+        return m.data['force']
     else:
-        return vec3()
-#TODO drag
-def getDrag(m,time,autoReqAccel):
-    return -2*m.vVec.normalize()
-#TODO ...how?
-def getLift(m,time,autoReqAccel):
-    CLMax = 2*np.pi*m.data['finsAoA']
-    return vec3()
-#TODO after getLift
-def getGravity(m,time):
-    return vec3()
+        return 0.0
+
+#TODO is it correct...?
+def getLift(m,autoReqAccel):
+    """
+    get Lift Coefficient of missile at given angle request
+    """
+    angleReq = np.arccos(autoReqAccel.normalize().dot(m.upVec))/(2*np.pi)
+    CLMax = m.data['finsAoA']
+    return CLMax if angleReq >= CLMax else angleReq
+
+#TODO is it correct...?
+def getDrag(m,autoReqAccel):
+    """
+    get Drag Coefficient of missile at given Lift Coefficient
+    """
+    # Cd = Cd0 + CL^2 / PI*AR*e
+    # AR = s^2 / A
+    # s = span, A = wing area, e = efficiency factor
+    # elliptical wing e = 1.0, rectangular wing e= 0.7
+    # (Total Drag) Cd = (zero lift)Cd0 + (induced drag)Cdi
+    angleReq = np.arccos(autoReqAccel.normalize().dot(m.fVec))/(2*np.pi)
+    CLMax = m.data['finsAoA'] if angleReq >= m.data['finsAoA'] else angleReq
+    
+    dragCx = m.data['dragCx'] #(zero lift)Cd0
+    K = m.data['CxK'] #K for Cdi(Drag lift-induced drag)
+    CdK = K*CLMax*CLMax
+    return dragCx+CdK
+
+def getGravity(m):
+    """
+    get gravity of missile at given height
+    """
+    gravity = data.getGravity(m.pVec.z)
+    return gravity
 
 # return in m/s
 def getAccel(m,time,autoReqAccel):
-    #drag_lift_constant = data.getAirDensity(m.pVec.z) * np.power(m.vVec.norm(),2) * mWingArea * 0.5
-    accelList = [
-        getThrust(m,time),
-        getDrag(m,time,autoReqAccel),
-        getLift(m,time,autoReqAccel),
-        getGravity(m,time),
-        autoReqAccel
+    # Reynolds Viscosity = density*velocity*length / viscosityCoeff
+    # Reynolds -> vortex
+    # not implemented here!
+    #------------
+    # constant calculations
+    airDensity = data.getAirDensity(m.pVec.z)
+    velocity = m.vVec.norm()
+    #wingArea = np.pi *np.power((m.data['caliber'])/2,2)*m.data['wingAreamult']
+    wingArea = m.data['caliber']*m.data['length']*m.data['wingAreamult']
+    drag_lift_constant = airDensity * velocity * velocity * wingArea * 0.5
+    #------------
+    # current time's mass calculation
+    if time <= m.data['timeFire']:
+        massNow = m.data['mass']-(m.data['mass']-m.data['massEnd'])*(time/m.data['timeFire'])
+    else:
+        massNow = m.data['massEnd']
+    #===================================
+    #Torque change (fvec change)
+    wingDist = m.data['length']*0.5*m.data['distFromCmToStab']
+    rvec = wingDist*m.fVec 
+    accelDiff = (autoReqAccel-m.fVec).normalize()
+    #m.fVec = m.fVec if autoReqAccel.norm() == 0 else rvec.cross(accelDiff).normalize()
+    
+    #------------
+    Thrust = getThrust(m,time)
+    LiftCoeff = getLift(m,autoReqAccel)
+    DragCoeff = getDrag(m,autoReqAccel)
+    Gravity = getGravity(m)
+    #------------
+    ForceThrust = Thrust*m.fVec
+    ForceLift = LiftCoeff*drag_lift_constant*m.upVec
+    ForceDrag = DragCoeff*drag_lift_constant*-m.vVec.normalize()
+    ForceGravity = vec3(0,0,-1)*Gravity
+    
+    forceList = [
+        ForceThrust,
+        ForceLift,
+        ForceDrag,
+        ForceGravity
     ]
-    return sum(accelList)
+    #print(m.fVec,forceList)
+    #------------
+    #print(LiftCoeff,DragCoeff)
+    return m.fVec*Thrust/massNow+autoReqAccel
+    #return sum(forceList)/massNow + autoReqAccel
+    #return sum(forceList)/massNow
 #!===============================================================
 # Guidance CALCULATIONS
 #!===============================================================
@@ -96,8 +160,13 @@ def seeker_simulator(m, allObjects):
         if type(obj) == mobj.FlareObject: 
             brightness = obj.data['flareBrightness']
         elif type(obj) == mobj.TargetObject: 
-            thrust = obj.data['Thrust']
-            brightness = thrust*data.thrustKgsToInfraRedBrightness
+            if obj.isAfterburnerOn: 
+                thrust = obj.data['ThrustMult']*obj.data['Thrust']
+                afThrust = thrust*(obj.data['AfterburnerBoost']-1)
+            else:
+                thrust = obj.data['Thrust']
+                afThrust = 0
+            brightness = thrust*data.thrustKgsToInfraRedBrightness + afThrust*data.afterburnerThrustKgsToInfraRedBrightness
         # brightness decreases 1/r^2
         brightness*=1/(dist*dist)
         #if brightness < 1: continue
@@ -116,7 +185,7 @@ def seeker_simulator(m, allObjects):
         #"""
     #targetList = [elm[0] for elm in brightestTargets]
     #targetList = brightestTargets
-    print(targetList)
+    #print(targetList)
     # no target? get out
     if not targetList:
         return m.sVec, False
@@ -191,7 +260,7 @@ def getMissileData(m,frame,allObjects):
               m.vVec.norm())
     newAccel = aCal
     m.sVec = newSVec
-    m.fVec = m.sVec
+    #m.fVec = m.sVec
     
     autoReqAccel = vec3()
     #MaxG Detection

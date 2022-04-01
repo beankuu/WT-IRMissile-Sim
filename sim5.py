@@ -6,53 +6,51 @@ import numpy as np
 
 def init(plot,datapack):
     targetData,missileData,flaresData = datapack
-    maxAngle = missileData[0].data['g_angleMax']
     maxRange = missileData[0].data['rangeBand0']
-    maxFOV = missileData[0].data['g_fov']/2
+    maxAngle = missileData[0].data['g_fov']/2
     plot.set_xlim([-maxAngle*1.2,maxAngle*1.2])
     plot.set_ylim([-maxAngle*1.2,maxAngle*1.2])
-    #plot.set_xlim([-5,5])
-    #plot.set_ylim([-5,5])
-    plot.set_xlabel('fov')
-    plot.set_ylabel('fov')
+    #plot.set_xlabel('fov')
+    #plot.set_ylabel('fov')
     # to right side
-    plot.yaxis.tick_right()
-    plot.yaxis.set_label_position("right")
+    plot.set_xticks([])
+    plot.set_yticks([])
+    #plot.axis('off')
+    #plot.yaxis.tick_right()
+    #plot.yaxis.set_label_position("right")
     #=================================================================
     # MaxAngle circle
-    maxLockcircleData = []
-    initLockCircleData = []
-    maxLockAngle = missileData[0].data['g_lockAngleMax']
+    circleData = []
     angle = 0
     while angle < 360:
-        maxLockcircleData.append([maxAngle*np.cos(np.radians(angle)),maxAngle*np.sin(np.radians(angle))])
-        initLockCircleData.append([maxLockAngle*np.cos(np.radians(angle)),maxLockAngle*np.sin(np.radians(angle))])
+        circleData.append([maxAngle*np.cos(np.radians(angle)),maxAngle*np.sin(np.radians(angle))])
         angle += 1
     # MaxAngle circle
-    circleplot, = plot.plot(0,0,color='grey',linewidth=0.5)
-    circleplot.set_data([o[0] for o in maxLockcircleData],
-                        [o[1] for o in maxLockcircleData])
-    # MaxLockAngle circle
-    circleplot, = plot.plot(0,0,color='grey',linewidth=0.5)
-    circleplot.set_data([o[0] for o in initLockCircleData],
-                        [o[1] for o in initLockCircleData])
+    circleplot, = plot.plot(0,0,color='red',linewidth=0.5)
+    circleplot.set_data([o[0] for o in circleData],
+                        [o[1] for o in circleData])
     #==================================================================
     # 3d to 2d
     newTargetPath = []
     newFlaresPath = [ [] for i in range(len(flaresData)) ]
 
+
     for i in range(data.MaxFrame):
         m = missileData[i]
         t = targetData[i]
-        rightVec = m.upVec.cross(m.fVec)
+        newRightVec = m.upVec.cross(m.sVec)
+        newUpVec = m.sVec.cross(newRightVec)
+
         diffVec = t.pVec - m.pVec
         calcRange = diffVec.norm()
         diffNormalized = diffVec.normalize()
-        calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.fVec)))
+        diffdotsvec = diffNormalized.dot(m.sVec)
+        diffdotsvec = 1 if diffdotsvec > 1 else diffdotsvec
+        calcAngle = np.rad2deg(np.arccos(diffdotsvec))
 
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-            newX = np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))-90 #-90~90
-            newY = np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90  #-90~90
+            newX = np.rad2deg(np.arccos(newRightVec.dot(diffNormalized)))-90 #-90~90
+            newY = np.rad2deg(np.arccos(newUpVec.dot(diffNormalized)))-90  #-90~90
             newTargetPath.append([-newX,newY])
         else:
             if i == 0:
@@ -66,31 +64,17 @@ def init(plot,datapack):
             diffVec = fl.pVec - m.pVec
             calcRange = diffVec.norm()
             diffNormalized = diffVec.normalize()
-            calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.fVec)))
+            diffdotsvec = diffNormalized.dot(m.sVec)
+            diffdotsvec = 1 if diffdotsvec > 1 else diffdotsvec
+            calcAngle = np.rad2deg(np.arccos(diffdotsvec))
 
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-                newX = np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))-90 #-90~90
-                newY = np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90 #-90~90
+                newX = np.rad2deg(np.arccos(newRightVec.dot(diffNormalized)))-90 #-90~90
+                newY = np.rad2deg(np.arccos(newUpVec.dot(diffNormalized)))-90 #-90~90
                 newFlaresPath[fi].append([-newX,newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
     #==================================================================
-    lockCirclePlot, = plot.plot(0,0,color='red',linewidth=0.5)
-    lockCircleData = []
-    for i in range(data.MaxFrame):
-        m = missileData[i]
-        t = targetData[i]
-        circleData = []
-        rightVec = m.upVec.cross(m.fVec)
-        diffVec = m.sVec
-        diffNormalized = diffVec.normalize()
-        x = np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))-90 #-90~90
-        y = np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90  #-90~90
-        angle = 0
-        while angle < 360:
-            circleData.append((x+maxFOV*np.cos(np.radians(angle)),y+maxFOV*np.sin(np.radians(angle))))
-            angle += 1
-        lockCircleData.append([circleData])
     #-----------------------------------------------------------
     # list of objects to Plot
     ## PlotObjects related to Target Object
@@ -108,8 +92,7 @@ def init(plot,datapack):
                         newFlaresPath[i]
                     ] for i in range(len(newFlaresPath))
                     ]
-    lockCircle = [lockCirclePlot,lockCircleData]
-    return [targetObjects,missileData,flaresObjects, lockCircle]
+    return [targetObjects,missileData,flaresObjects]
 #-----------------------------------------------------------
 def resetColor(resetObject,objType):
     if objType == 'target': color = 'blue'
@@ -122,7 +105,7 @@ def genTextStr(m,t):
     return t.data['name'] + '\n' + str(round((m.pVec-t.pVec).norm()/1000,1))+'km'
 
 def update(frame,ax,simPlots):
-    targetObjects,missileData,flaresObjects, lockCircle = simPlots
+    targetObjects,missileData,flaresObjects = simPlots
     #------------------------------------------
     # [[textplot, data],[textplot, data],...]
     textplot,lineplot, obj, targetData = targetObjects
@@ -134,9 +117,6 @@ def update(frame,ax,simPlots):
     for textplot, obj in flaresObjects:
         textplot.set_position((obj[frame][0],obj[frame][1]))
     
-    lockCirclePlot, lockCircleData = lockCircle
-    lockCirclePlot.set_data([m[0] for o in lockCircleData[frame][:360] for m in o ], 
-                            [m[1] for o in lockCircleData[frame][:360] for m in o ])
     
     #------------------------------------------
     ## do-things at end of frame

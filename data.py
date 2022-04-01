@@ -80,6 +80,7 @@ target0 = {
     'mass' : 1000, #kg
     'maxspeed' : 1, #m/s (1332kmh)
     'Thrust' : 10000,
+    'AoA' : 0.25, #90 deg
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.5,
     'enginecount' : 1,
@@ -90,6 +91,8 @@ target1 = {
     'name' : 'F-4E',
     'mass' : 20000, #kg
     'maxspeed' : 350, #m/s (1260kmh)
+    'AoA' : 0.138, #50 deg,
+    'wingAreaSum' : 8.2*6+4.0+5.2+1.8+5.0+1.5+0.35*2,
     'Thrust' : 2600,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.4,
@@ -101,22 +104,52 @@ target2 = {
     'name' : 'Mig-23MLD',
     'mass' : 14000, #kg,
     'maxspeed' : 360, #m/s (1296kmh)
+    'AoA' : 0.25, #90 deg
+    'wingAreaSum' : (4+7+6+4+7+6+0.2)*7.8,
     'Thrust' : 6057.0601,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.32,
     'enginecount' : 1,
     'flareType' : 1
 }
+# A-10a early
+target3 = {
+    'name' : 'A-10A',
+    'mass' : 7000, #kg,
+    'maxspeed' : 140, #m/s (504kmh)
+    'stallSpeed' : 49, #m/s (176.4kmh)
+    'AoA' : 0.138, #50 deg,
+    'wingAreaSum' : (7.8*6+2.05)*17.5,
+    'Thrust' : 1981.96,
+    'AfterburnerBoost' : 1.0,
+    'ThrustMult' : 1.0,
+    'enginecount' : 2,
+    'flareType' : 0
+}
 #!------------------------------------------------------------------------------------
 flare0 = {
     'name' : 'flare',
     'flareBrightness' : 1000.0,
-    'timeLife' : 4.4 #should be 4.4
+    'timeLife' : 4.4, 'timeFire' : 4.4,
+    'caliber' : 0.026,
+    'mass' : 0.09, 'massEnd' : 0.04,
+    'maxDeltaAngle' : 25.0, 'maxDeltaAngleVertical' : 5.0,
+    'dragCx' : 0.0001, 'CxK' : 8.0,
+    'length' : 0.008, 'distFromCmToStab' : 0.005,
+    'force' : 0.1,
+    'startSpeed' : 70.0, 'endSpeed' : 0.0
 }
 flare1 = {
     'name' : 'flare_big',
     'flareBrightness' : 4500.0,
-    'timeLife' : 4.4
+    'timeLife' : 4.5, 'timeFire' : 4.4,
+    'caliber' : 0.05,
+    'mass' : 1.0, 'massEnd' : 0.27,
+    'maxDeltaAngle' : 25.0, 'maxDeltaAngleVertical' : 5.0,
+    'dragCx' : 0.0001, 'CxK' : 8.0,
+    'length' : 0.2, 'distFromCmToStab' : 0.005,
+    'force' : 0.1,
+    'startSpeed' : 70.0, 'endSpeed' : 0.0
 }
 #!===================================================
 thrustKgsToInfraRedBrightness = 1.0
