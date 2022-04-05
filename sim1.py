@@ -1,5 +1,6 @@
 ## up left 3D graph, simulating entire view
 import mObjects as mobj
+from mObjects import Vec3D as vec3
 import data
 import numpy as np
 
@@ -56,24 +57,20 @@ def resetColor(resetObject,objType):
     resetObject.set_color(color)
 
 def genTextStr(obj):
-    if type(obj) == mobj.TargetObject:
-        mach = round(data.calcMach(obj.vVec.norm(),obj.pVec.z),1)
-        speed = round(obj.vVec.norm()/0.277,1)
-        afText = '\nAF' if obj.isAfterburnerOn else ''
-        return  obj.data['name']+'\n'+\
-            'Mach: ' + str(mach)+'('+str(speed)+'km/h)\n'+\
-            'height: ' + str(round(obj.pVec.z,1))+'m'+\
-            afText
-    elif type(obj) == mobj.MissileObject:
-        mach = round(data.calcMach(obj.vVec.norm(),obj.pVec.z),1)
-        speed = round(obj.vVec.norm()/0.277,1)
-        return  obj.data['name']+'\n'+\
-            'Mach: ' + str(mach)+'('+str(speed)+'km/h)\n'+\
+    text = obj.data['name']
+    if type(obj) == mobj.FlareObject:
+        return text
+    
+    mach = round(data.calcMach(vec3.norm(obj.vVec),obj.pVec.z),1)
+    speed = round(vec3.norm(obj.vVec)/0.277,1)
+    text += '\n'+'Mach: ' + str(mach)+'('+str(speed)+'km/h)\n'+\
             'height: ' + str(round(obj.pVec.z,1))+'m'
-    elif type(obj) == mobj.FlareObject: 
-        return  obj.data['name']
-    else:
-        return ''
+    if type(obj) == mobj.MissileObject:
+        return text
+
+    text += '\nAF' if obj.isAfterburnerOn else ''
+    #if type(obj) == mobj.TargetObject:
+    return text
 
 def update(frame,ax,simPlots):
     targetObjects,missileObjects,flareObjects,otherObjects = simPlots

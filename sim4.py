@@ -1,11 +1,12 @@
 ## down right 2D graph, missile velocity
 import mObjects as mobj
+from mObjects import Vec3D as vec3
 import data
 
 def init(plot,datapack):
     targetData, missileData = datapack
-    missile_speedData = [elm.vVec.norm()/0.2777 for elm in missileData]
-    target_speedData = [elm.vVec.norm()/0.2777 for elm in targetData]
+    missile_speedData = [vec3.norm(elm.vVec)/0.2777 for elm in missileData]
+    target_speedData = [vec3.norm(elm.vVec)/0.2777 for elm in targetData]
     
     plot.set_xlim([0,data.TIMEMAX])
     plot.set_ylim([0,max(missile_speedData)+200])

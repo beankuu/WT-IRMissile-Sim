@@ -34,8 +34,8 @@ def rotateTorqueForce(m,guideReqAccel):
     function to change upVec and fVec
     
     """
-    if guideReqAccel.norm() == 0: return vec3(1,0,0), vec3(0,0,0)
-    newFVec = guideReqAccel.normalize()
+    if vec3.norm(guideReqAccel) == 0: return vec3(1,0,0), vec3(0,0,0)
+    newFVec = vec3.normalize(guideReqAccel)
     if newFVec == m.fVec: return vec3(0,0,0), vec3(0,0,0)
     #newRVec = newFVec.cross(m.fVec)
     #newUpVec = newFVec.cross(newRVec)
@@ -44,11 +44,11 @@ def rotateTorqueForce(m,guideReqAccel):
     rvec = wingDist*m.fVec
 
     #TODO
-    cos_theta = m.fVec.dot(newFVec)
+    cos_theta = vec3.dot(m.fVec, newFVec)
     #newForce = (newFVec - m.fVec*cos_theta)/cos_theta
-    newForce = (newFVec - m.fVec*cos_theta)*guideReqAccel.norm()
+    newForce = (newFVec - m.fVec*cos_theta)*vec3.norm(guideReqAccel)
     
-    forceTorque = rvec.cross(newForce) #UPVEC?
+    forceTorque = vec3.cross(rvec,newForce) #UPVEC?
     
     #m.fVec = newFVec
     #m.upVec = newUpVec
@@ -69,7 +69,9 @@ def getLift(m,guideReqAccel):
     """
     get Lift Coefficient of missile at given angle request
     """
-    angleReq = np.arccos(guideReqAccel.normalize().dot(m.upVec))/(2*np.pi)
+    angleReq = np.arccos(
+       vec3.dot(vec3.normalize(guideReqAccel),m.upVec)
+    )/(2*np.pi)
     CLMax = m.data['finsAoA']
     return CLMax if angleReq >= CLMax else angleReq
 
@@ -83,7 +85,9 @@ def getDrag(m,guideReqAccel):
     # s = span, A = wing area, e = efficiency factor
     # elliptical wing e = 1.0, rectangular wing e= 0.7
     # (Total Drag) Cd = (zero lift)Cd0 + (induced drag)Cdi
-    angleReq = np.arccos(guideReqAccel.normalize().dot(m.fVec))/(2*np.pi)
+    angleReq = np.arccos(
+        vec3.dot(vec3.normalize(guideReqAccel),m.fVec)
+    )/(2*np.pi)
     CLMax = m.data['finsAoA'] if angleReq >= m.data['finsAoA'] else angleReq
     
     dragCx = m.data['dragCx'] #(zero lift)Cd0
@@ -96,13 +100,12 @@ def getAccel(m,time,guideReqAccel):
     #-------------------------------------
     # constant calculations
     airDensity = data.getAirDensity(m.pVec.z)
-    velocity = m.vVec.norm()
+    velocity = vec3.norm(m.vVec)
     areaNose = np.pi *np.power((m.data['caliber'])/2,2)
     areaWing = m.data['caliber']*m.data['length']
     totalArea = (areaNose+areaWing)*m.data['wingAreamult']
 
-    drag_constant = airDensity * velocity * velocity * totalArea * 0.5
-    lift_constant = airDensity * velocity * velocity * totalArea * 0.5
+    lift_drag_constant = airDensity * velocity * velocity * totalArea * 0.5
     #-------------------------------------
     # current time's mass calculation
     if time <= m.data['timeFire']:
@@ -144,8 +147,8 @@ def getAccel(m,time,guideReqAccel):
     # Forces
     forces = [
         thrust*m.fVec,
-        liftCoef*lift_constant*m.upVec,
-        dragCoef*drag_constant*-m.fVec,
+        liftCoef*lift_drag_constant*m.upVec,
+        dragCoef*lift_drag_constant*-m.fVec,
         gravity*vec3(0,0,-1)*massNow
     ]
     sumAccel = sum(forces)/massNow

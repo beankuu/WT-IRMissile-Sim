@@ -42,15 +42,15 @@ def init(plot,datapack):
     for i in range(data.MaxFrame):
         m = missileData[i]
         t = targetData[i]
-        rightVec = m.upVec.cross(m.fVec)
+        rightVec = vec3.cross(m.upVec,m.fVec)
         diffVec = t.pVec - m.pVec
-        calcRange = diffVec.norm()
-        diffNormalized = diffVec.normalize()
-        calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.fVec)))
+        calcRange = vec3.norm(diffVec)
+        diffNormalized = vec3.normalize(diffVec)
+        calcAngle = np.rad2deg(np.arccos(vec3.dot(diffNormalized,m.fVec)))
 
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-            newX = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized))) #-90~90
-            newY = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90  #-90~90
+            newX = 90-np.rad2deg(np.arccos(vec3.dot(rightVec,diffNormalized))) #-90~90
+            newY = 90-np.rad2deg(np.arccos(vec3.dot(m.upVec,diffNormalized)))-90  #-90~90
             newTargetPath.append([-newX,newY])
         else:
             if i == 0:
@@ -62,13 +62,13 @@ def init(plot,datapack):
         #for obj in flaresData:
             fl = flaresData[fi][i]
             diffVec = fl.pVec - m.pVec
-            calcRange = diffVec.norm()
-            diffNormalized = diffVec.normalize()
-            calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.fVec)))
+            calcRange = vec3.norm(diffVec)
+            diffNormalized = vec3.normalize(diffVec)
+            calcAngle = np.rad2deg(np.arccos(vec3.dot(diffNormalized,m.fVec)))
 
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-                newX = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized))) #-90~90
-                newY = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized))) #-90~90
+                newX = 90-np.rad2deg(np.arccos(vec3.dot(rightVec,diffNormalized))) #-90~90
+                newY = 90-np.rad2deg(np.arccos(vec3.dot(m.upVec,diffNormalized))) #-90~90
                 newFlaresPath[fi].append([-newX,newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
@@ -79,11 +79,11 @@ def init(plot,datapack):
         m = missileData[i]
         t = targetData[i]
         circleData = []
-        rightVec = m.upVec.cross(m.fVec)
+        rightVec = vec3.cross(m.upVec,m.fVec)
         diffVec = m.sVec
         diffNormalized = diffVec#.normalize()
-        x = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized))) #-90~90
-        y = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))  #-90~90
+        x = 90-np.rad2deg(np.arccos(vec3.dot(rightVec,diffNormalized))) #-90~90
+        y = 90-np.rad2deg(np.arccos(vec3.dot(m.upVec,diffNormalized)))  #-90~90
         angle = 0
         while angle < 360:
             circleData.append((-x-maxFOV*np.cos(np.radians(angle)),y+maxFOV*np.sin(np.radians(angle))))
@@ -117,7 +117,7 @@ def resetColor(resetObject,objType):
     resetObject.set_color(color)
 
 def genTextStr(m,t):
-    return t.data['name'] + '\n' + str(round((m.pVec-t.pVec).norm()/1000,1))+'km'
+    return t.data['name'] + '\n' + str(round(vec3.norm(m.pVec-t.pVec)/1000,1))+'km'
 
 def update(frame,ax,simPlots):
     targetObjects,missileData,flaresObjects, lockCircle = simPlots

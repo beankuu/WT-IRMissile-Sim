@@ -38,19 +38,19 @@ def init(plot,datapack):
     for i in range(data.MaxFrame):
         m = missileData[i]
         t = targetData[i]
-        newRightVec = m.upVec.cross(m.sVec)
-        newUpVec = m.sVec.cross(newRightVec)
+        newRightVec = vec3.cross(m.upVec,m.sVec)
+        newUpVec = vec3.cross(m.sVec,newRightVec)
 
         diffVec = t.pVec - m.pVec
-        calcRange = diffVec.norm()
-        diffNormalized = diffVec.normalize()
-        diffdotsvec = diffNormalized.dot(m.sVec)
+        calcRange = vec3.norm(diffVec)
+        diffNormalized = vec3.normalize(diffVec)
+        diffdotsvec = vec3.dot(diffNormalized,m.sVec)
         diffdotsvec = 1 if diffdotsvec > 1 else diffdotsvec
         calcAngle = np.rad2deg(np.arccos(diffdotsvec))
 
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-            newX = 90-np.rad2deg(np.arccos(newRightVec.dot(diffNormalized))) #-90~90
-            newY = 90-np.rad2deg(np.arccos(newUpVec.dot(diffNormalized)))  #-90~90
+            newX = 90-np.rad2deg(np.arccos(vec3.dot(newRightVec,diffNormalized))) #-90~90
+            newY = 90-np.rad2deg(np.arccos(vec3.dot(newUpVec,diffNormalized)))  #-90~90
             newTargetPath.append([-newX,newY])
         else:
             if i == 0:
@@ -62,15 +62,15 @@ def init(plot,datapack):
         #for obj in flaresData:
             fl = flaresData[fi][i]
             diffVec = fl.pVec - m.pVec
-            calcRange = diffVec.norm()
-            diffNormalized = diffVec.normalize()
-            diffdotsvec = diffNormalized.dot(m.sVec)
+            calcRange = vec3.norm(diffVec)
+            diffNormalized = vec3.normalize(diffVec)
+            diffdotsvec = vec3.dot(diffNormalized,m.sVec)
             diffdotsvec = 1 if diffdotsvec > 1 else diffdotsvec
             calcAngle = np.rad2deg(np.arccos(diffdotsvec))
 
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-                newX = 90-np.rad2deg(np.arccos(newRightVec.dot(diffNormalized))) #-90~90
-                newY = 90-np.rad2deg(np.arccos(newUpVec.dot(diffNormalized))) #-90~90
+                newX = 90-np.rad2deg(np.arccos(vec3.dot(newRightVec,diffNormalized))) #-90~90
+                newY = 90-np.rad2deg(np.arccos(vec3.dot(newUpVec,diffNormalized))) #-90~90
                 newFlaresPath[fi].append([-newX,newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
@@ -102,7 +102,7 @@ def resetColor(resetObject,objType):
     resetObject.set_color(color)
 
 def genTextStr(m,t):
-    return t.data['name'] + '\n' + str(round((m.pVec-t.pVec).norm()/1000,1))+'km'
+    return t.data['name'] + '\n' + str(round(vec3.norm(m.pVec-t.pVec)/1000,1))+'km'
 
 def update(frame,ax,simPlots):
     targetObjects,missileData,flaresObjects = simPlots

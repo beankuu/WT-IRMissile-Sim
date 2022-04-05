@@ -28,8 +28,11 @@ def seeker_simulator(m, allObjects):
     # 1. select target from list, which is in fov range
     targetList = []
     for obj in objects:
-        calcRange = (obj.pVec - m.pVec).norm()
-        calcAngle = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
+        calcRange = vec3.norm(obj.pVec - m.pVec)
+        calcAngle = np.rad2deg(
+            np.arccos(
+                vec3.dot(vec3.normalize(obj.pVec - m.pVec), m.sVec)
+            ))
         if calcRange <= m.data['rangeBand0']:
             # flare resistance
             if m.isLocked:
@@ -44,7 +47,7 @@ def seeker_simulator(m, allObjects):
     brightness = 1 # minimum
     brightestTargets = [] #obj, brightness
     for obj in targetList:
-        dist = (obj.pVec - m.pVec).norm()
+        dist = vec3.norm(obj.pVec - m.pVec)
         if type(obj) == mobj.FlareObject: 
             brightness = obj.data['flareBrightness']
         elif type(obj) == mobj.TargetObject: 
@@ -81,16 +84,19 @@ def seeker_simulator(m, allObjects):
     angle = data.INFINITE
     target = targetList[0]
     for obj in targetList:
-        newAngle = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
+        newAngle = np.rad2deg(
+            np.arccos(
+                vec3.dot(vec3.normalize(obj.pVec - m.pVec),m.sVec)
+        ))
         if newAngle < angle:
             angle = newAngle
             target = obj
     
     # 4. get target angle
-    target_angle = np.rad2deg(np.arccos(m.fVec.dot(m.sVec)))
+    target_angle = np.rad2deg(np.arccos(vec3.dot(m.fVec,m.sVec)))
     #print(target_angle, m.data['g_angleMax'])
     if np.abs(target_angle) <= m.data['g_angleMax']:
-        return (target.pVec - m.pVec).normalize(), True
+        return vec3.normalize(target.pVec - m.pVec), True
     else:
         return m.sVec, False
 
@@ -122,9 +128,9 @@ def PID(diff, m):
     m.PIDe2 = e2
     PID = P+I+D
 
-    if PID.norm() < (P+m.data['g_ga_accelControlIntgLim']*e1+D).norm() and m.intgK <= m.data['g_ga_accelControlIntgLim']:
+    if vec3.norm(PID) < vec3.norm(P+m.data['g_ga_accelControlIntgLim']*e1+D) and m.intgK <= m.data['g_ga_accelControlIntgLim']:
         m.intgK += m.data['g_ga_accelControlIntg']
-    elif PID.norm() > (P+D).norm() and m.intgK >= 0:
+    elif vec3.norm(PID) > vec3.norm(P+D) and m.intgK >= 0:
         m.intgK -= m.data['g_ga_accelControlIntg']
     return PID
 
@@ -145,8 +151,8 @@ def getMissileData(m,frame,allObjects):
     #2. Acceleration Request
     PIDResult = PID(newSVec-m.sVec,m)
     aCal = PN(m.data['g_ga_propNavMult'],
-              (PIDResult).normalize(),
-              m.vVec.norm())
+              vec3.normalize(PIDResult),
+              vec3.norm(m.vVec))
     newAccel = aCal
     m.sVec = newSVec
     #m.fVec = m.sVec
@@ -156,8 +162,8 @@ def getMissileData(m,frame,allObjects):
     if frame*data.dt >= m.data['g_ga_timeOut']:
         if m.isTrackable:
             accelMax = m.data['g_ga_reqAccelMax']*data.getGravity(m.pVec.z)
-            if newAccel.norm() > accelMax:
-                guideReqAccel = accelMax*newAccel.normalize()
+            if vec3.norm(newAccel) > accelMax:
+                guideReqAccel = accelMax*vec3.normalize(newAccel)
                 m.isMaxG = True
             else:
                 guideReqAccel = newAccel

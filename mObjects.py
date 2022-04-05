@@ -67,54 +67,19 @@ class Vec3D:
             return self.x == other[0] and self.y == other[1] and self.z == other[2]
     def __req__(self,other):
         return self == other
-
-    #---------------------------------
-    # degree in rads, axis = 'x','y','z'
-    def rotate(self, rads, axis):
-        rot_cos = np.cos(rads)
-        rot_sin = np.sin(rads)
-        if axis == 'x':
-            tempVec = Vec3D(
-                self.x,
-                rot_cos*self.y - rot_sin*self.z,
-                rot_sin*self.y + rot_cos*self.z
-            )
-        elif axis == 'y':
-            tempVec = Vec3D(
-                rot_cos*self.x + rot_sin*self.z,
-                self.y,
-                -rot_sin*self.x + rot_cos*self.z
-            )
-        else:
-            tempVec = Vec3D(
-                rot_cos*self.x - rot_sin*self.y,
-                rot_sin*self.x + rot_cos*self.y,
-                self.z
-            )
-        return tempVec
-    def rotateDegree(self, degree, axis):
-        return self.rotate(np.rads(degree),axis)
-    def translate(self, P):
-        return self + P
-    def scale(self, P):
-        return self * P
-    def dot(self, other):
-        result = np.dot([self.x,self.y,self.z],[other.x,other.y,other.z])
-        #return 1 if np.abs(result) > 1 else result
-        return result
-    def cross(self, other):
-        result = np.cross([self.x,self.y,self.z],[other.x,other.y,other.z])
-        return Vec3D(result[0],result[1],result[2])
-        #self.x = result[0]; self.y = result[1]; self.z = result[2]
-        #return self #chaining
-    def norm(A):
-        return float(np.linalg.norm(np.array([A.x,A.y,A.z])))
-    def norm(self):
-        return float(np.linalg.norm(np.array([self.x,self.y,self.z])))
-    def normalize(self):
-        self /= self.norm()
-        return self
-
+    #-------------
+    def __str__(self):
+        return str([self.x, self.y, self.z])
+    def __repr__(self):
+        return str([self.x, self.y, self.z])
+    #-------------
+    def clone(self):
+        return copy.deepcopy(self)
+    def toArray(self):
+        return np.array([self.x, self.y, self.z])
+    def toList(self):
+        return [self.x, self.y, self.z]
+    #-------------
     def setSpherical(self,r,theta,rho):
         """
         inclination(theta)[-pi/2~pi/2], azimuth(rho)[0~pi] in rads
@@ -129,18 +94,58 @@ class Vec3D:
     def setSphericalDegree(self,lst):
         r, theta, rho = lst
         return self.setSpherical(r,np.radians(theta),np.radians(rho))
-
-    def __str__(self):
-        return str([self.x, self.y, self.z])
-    def __repr__(self):
-        return str([self.x, self.y, self.z])
-    
-    def clone(self):
-        return copy.deepcopy(self)
-    def toArray(self):
-        return np.array([self.x, self.y, self.z])
-    def toList(self):
-        return [self.x, self.y, self.z]
+    #---------------------------------
+    # degree in rads, axis = 'x','y','z'
+    @staticmethod
+    def rotate(obj, rads, axis):
+        rot_cos = np.cos(rads)
+        rot_sin = np.sin(rads)
+        if axis == 'x':
+            tempVec = Vec3D(
+                obj.x,
+                rot_cos*obj.y - rot_sin*obj.z,
+                rot_sin*obj.y + rot_cos*obj.z
+            )
+        elif axis == 'y':
+            tempVec = Vec3D(
+                rot_cos*obj.x + rot_sin*obj.z,
+                obj.y,
+                -rot_sin*obj.x + rot_cos*obj.z
+            )
+        else:
+            tempVec = Vec3D(
+                rot_cos*obj.x - rot_sin*obj.y,
+                rot_sin*obj.x + rot_cos*obj.y,
+                obj.z
+            )
+        return tempVec
+    @staticmethod
+    def rotateDegree(obj, degree, axis):
+        return Vec3D.rotate(obj,np.rads(degree),axis)
+    @staticmethod
+    def translate(obj, P):
+        return obj + P
+    @staticmethod
+    def scale(obj, P):
+        return obj * P
+    @staticmethod
+    def dot(obj1, obj2):
+        result = np.dot(obj1.toArray(),obj2.toArray())
+        #return 1 if np.abs(result) > 1 else result
+        return result
+    @staticmethod
+    def cross(obj1, obj2):
+        result = np.cross(obj1.toArray(),obj2.toArray())
+        return Vec3D(result[0],result[1],result[2])
+        #self.x = result[0]; self.y = result[1]; self.z = result[2]
+        #return self #chaining
+    @staticmethod
+    def norm(obj):
+        return float(np.linalg.norm(obj.toArray()))
+    @staticmethod
+    def normalize(obj):
+        obj /= Vec3D.norm(obj)
+        return obj
 
 # root object
 class SimObject:
@@ -149,9 +154,45 @@ class SimObject:
         self.pVec = Vec3D() if pVec == None else pVec
         self.vVec = Vec3D(1,0,0) if vVec == None else vVec
         self.aVec = Vec3D() if aVec == None else aVec
-        self.fVec = Vec3D(1,0,0) if fVec == None else fVec.normalize()
-        self.upVec = Vec3D(0,0,1) if upVec == None else upVec.normalize()
+        self.fVec = Vec3D(1,0,0) if fVec == None else Vec3D.normalize(fVec)
+        self.upVec = Vec3D(0,0,1) if upVec == None else Vec3D.normalize(upVec)
         self.data = {} if data == None else data
+
+        self.aileron = 0 #0, %
+        self.elevator = 0 #0, %
+        self.rudder = 0 #-7, %
+        self.Ny = 0 #1
+        self.Vy = 0 #0, m/s
+        self.Wx = 0 #0, deg/s
+        self.AoA = 0 #3.9, deg
+        self.AoS = 0 #72.5, deg
+        self.TAS = 0 #0, km/h
+        self.IAS = 0 #0, km/h
+        self.M = 0 #0
+        #self.manifold_pressure1 #?
+        self.atm = 0 #0.28
+        self.pitch1 = 0  # 24, deg
+        self.thrust1 = 0  # 1, kgs
+        self.efficiency1 = 0  # 0, %
+        
+        #----------------
+        self.speed = 0 #-0.0281
+        self.vario = 0 #0
+        self.altitude_hour = 0 #61.626
+        self.altitude_min = 0 #61.626
+        self.altitude_10k = 0 #61.626
+        self.aviahorizon_roll = 0 #-0.056145
+        self.aviahorizon_pitch = 0 #-12.78846
+        self.bank = 0 # 0.056
+        self.turn = 0 # 0
+        self.compass = 0 #252.50
+        self.manifold_pressure = 0 #0.279
+        self.head_temperature = 0 #235.59
+        self.trimmer = 0 #0
+        self.prop_pitch = 0 #0
+        self.throttle = 0 #0
+        self.clock_sec = 0 #56
+
     def clone(self):
         return copy.deepcopy(self)
 
@@ -181,7 +222,7 @@ class MissileObject(SimObject):
     # ...seeker direction(sVec), acceleration(aVec)
     def __init__(self, pVec=None, vVec=None, aVec=None, fVec=None, upVec=None, sVec=None, data=None):
         super().__init__(pVec,vVec,aVec,fVec,upVec,data)
-        self.sVec = Vec3D() if sVec == None else (sVec-pVec).normalize()
+        self.sVec = Vec3D() if sVec == None else Vec3D.normalize(sVec-pVec)
         self.isHit = False
         self.isLocked = True
         self.isMaxG = False
@@ -195,9 +236,5 @@ class MissileObject(SimObject):
             self.intgK=0.0
         else:
             self.intgK=data['g_ga_accelControlIntg']
-    def rotate(self,degree,axis):
-        super().rotate(degree,axis)
-        self.sVec = self.sVec.rotate(degree,axis)
-        return self
     def clone(self):
         return copy.deepcopy(self)

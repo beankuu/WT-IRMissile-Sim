@@ -1,3 +1,4 @@
+from locale import normalize
 from re import L
 import numpy as np
 
@@ -11,10 +12,12 @@ import mObjects as mobj
 from mObjects import Vec3D as vec3
 
 def isHit(t, m):
-    mtDistance = (m.pVec-t.pVec).norm()
+    mtDistance = vec3.norm(m.pVec-t.pVec)
     ## Method 1: minimum distance between two vectors
-    vVecCross = m.upVec if m.vVec.normalize() == t.vVec.normalize() else m.vVec.cross(t.vVec)
-    maxDx = np.abs(vVecCross.dot(m.pVec-t.pVec)/vVecCross.norm())
+    vVecCross = m.upVec if vec3.normalize(m.vVec) == vec3.normalize(t.vVec) else vec3.cross(m.vVec,t.vVec)
+    maxDx = np.abs(
+        vec3.dot(vVecCross, (m.pVec-t.pVec)/vec3.norm(vVecCross))
+    )
     ## Method 2: mindist Point + v*dt as radius
     #maxDx = (m.vVec.norm() if t.vVec.norm() < m.vVec.norm() else t.vVec.norm()) * data.dt
     # missile? or other types?
