@@ -13,9 +13,9 @@ def init(plot,datapack):
     #plot.set_xlabel('fov')
     #plot.set_ylabel('fov')
     # to right side
-    plot.set_xticks([])
-    plot.set_yticks([])
-    #plot.axis('off')
+    #plot.set_xticks([])
+    #plot.set_yticks([])
+    plot.axis('off')
     #plot.yaxis.tick_right()
     #plot.yaxis.set_label_position("right")
     #=================================================================
@@ -49,8 +49,8 @@ def init(plot,datapack):
         calcAngle = np.rad2deg(np.arccos(diffdotsvec))
 
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-            newX = np.rad2deg(np.arccos(newRightVec.dot(diffNormalized)))-90 #-90~90
-            newY = np.rad2deg(np.arccos(newUpVec.dot(diffNormalized)))-90  #-90~90
+            newX = 90-np.rad2deg(np.arccos(newRightVec.dot(diffNormalized))) #-90~90
+            newY = 90-np.rad2deg(np.arccos(newUpVec.dot(diffNormalized)))  #-90~90
             newTargetPath.append([-newX,newY])
         else:
             if i == 0:
@@ -69,8 +69,8 @@ def init(plot,datapack):
             calcAngle = np.rad2deg(np.arccos(diffdotsvec))
 
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-                newX = np.rad2deg(np.arccos(newRightVec.dot(diffNormalized)))-90 #-90~90
-                newY = np.rad2deg(np.arccos(newUpVec.dot(diffNormalized)))-90 #-90~90
+                newX = 90-np.rad2deg(np.arccos(newRightVec.dot(diffNormalized))) #-90~90
+                newY = 90-np.rad2deg(np.arccos(newUpVec.dot(diffNormalized))) #-90~90
                 newFlaresPath[fi].append([-newX,newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])

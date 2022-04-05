@@ -11,8 +11,6 @@ def init(plot,datapack):
     maxFOV = missileData[0].data['g_fov']/2
     plot.set_xlim([-maxAngle*1.2,maxAngle*1.2])
     plot.set_ylim([-maxAngle*1.2,maxAngle*1.2])
-    #plot.set_xlim([-5,5])
-    #plot.set_ylim([-5,5])
     plot.set_xlabel('fov')
     plot.set_ylabel('fov')
     # to right side
@@ -51,8 +49,8 @@ def init(plot,datapack):
         calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.fVec)))
 
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-            newX = np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))-90 #-90~90
-            newY = np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90  #-90~90
+            newX = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized))) #-90~90
+            newY = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90  #-90~90
             newTargetPath.append([-newX,newY])
         else:
             if i == 0:
@@ -69,8 +67,8 @@ def init(plot,datapack):
             calcAngle = np.rad2deg(np.arccos(diffNormalized.dot(m.fVec)))
 
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
-                newX = np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))-90 #-90~90
-                newY = np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90 #-90~90
+                newX = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized))) #-90~90
+                newY = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized))) #-90~90
                 newFlaresPath[fi].append([-newX,newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
@@ -83,12 +81,12 @@ def init(plot,datapack):
         circleData = []
         rightVec = m.upVec.cross(m.fVec)
         diffVec = m.sVec
-        diffNormalized = diffVec.normalize()
-        x = np.rad2deg(np.arccos(rightVec.dot(diffNormalized)))-90 #-90~90
-        y = np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))-90  #-90~90
+        diffNormalized = diffVec#.normalize()
+        x = 90-np.rad2deg(np.arccos(rightVec.dot(diffNormalized))) #-90~90
+        y = 90-np.rad2deg(np.arccos(m.upVec.dot(diffNormalized)))  #-90~90
         angle = 0
         while angle < 360:
-            circleData.append((x+maxFOV*np.cos(np.radians(angle)),y+maxFOV*np.sin(np.radians(angle))))
+            circleData.append((-x-maxFOV*np.cos(np.radians(angle)),y+maxFOV*np.sin(np.radians(angle))))
             angle += 1
         lockCircleData.append([circleData])
     #-----------------------------------------------------------
