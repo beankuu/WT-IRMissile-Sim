@@ -3,6 +3,7 @@ import numpy as np
 
 # customs
 import guidance as guide # for missile guidance
+import propulsion # for missile acceleration
 import targetPath # for target path generation
 
 import data
@@ -49,7 +50,14 @@ def genMissileTrajectory(missile,f,allObjects):
     IN: MissileObject, Framenumber, all objects at current frame=[target,flares]
     OUT: MissileObject at given frame
     """
-    return guide.getMissileData(missile,f,allObjects).clone()
+    guideReqAccel = guide.getMissileData(missile,f,allObjects)
+    acceleration = propulsion.getAccel(missile,f*data.dt,guideReqAccel)
+    #3. Add other forces
+    missile.aVec = acceleration
+    #4. Get new velocity and position
+    missile.pVec += missile.vVec*data.dt + 0.5*missile.aVec*data.dt*data.dt
+    missile.vVec += missile.aVec*data.dt
+    return missile.clone()
 #===============================================================
 def genPaths(target,missile,flaredataflares):
     """

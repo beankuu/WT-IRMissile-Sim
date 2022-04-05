@@ -22,8 +22,8 @@ def getDragCoeff(t,LiftCoeff):
     """
     #dragCx = t.data['dragCx']
     #K = t.data['CxK'] #Drag lift-induced drag
-    CdK = 30*LiftCoeff*LiftCoeff# !temporary
-    return CdK
+    CdK = 10*LiftCoeff*LiftCoeff# !temporary
+    return 0.1+CdK
 
 def genTargetMovement(t,frame,accel_wanted):
     gravity = data.getGravity(t.pVec.z)
@@ -34,7 +34,7 @@ def genTargetMovement(t,frame,accel_wanted):
     
     airDensity = data.getAirDensity(t.pVec.z)
     velocity = t.vVec.norm()
-    wingArea = t.data['wingAreaSum']/10000# !temporary
+    wingArea = t.data['wingAreaSum']# !temporary
     drag_lift_constant = airDensity * velocity * velocity * wingArea * 0.5
     #ThrustMult
     #AfterburnerBoost
@@ -57,7 +57,7 @@ def genTargetMovement(t,frame,accel_wanted):
         t.fVec*thrust,
         t.upVec*LiftCoeff*drag_lift_constant,
         (-t.fVec)*DragCoeff*drag_lift_constant,
-        vec3(0,0,-1)*gravity
+        vec3(0,0,-1)*gravity*t.data['mass']
     ]
 
     accel_balance = sum(forceList)/t.data['mass']
@@ -82,25 +82,25 @@ def genTargetMovement1(t,frame):
 
     timenow = frame*data.dt
     if timenow < 0.5:
-        accel_wanted = 7*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(-30),'z')
-        accel_wanted = accel_wanted.rotate(np.radians(10),'x')
-        t.upVec = t.upVec.rotate(np.radians(-10),'x')
-    elif timenow < 3.0:
-        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(25),'z')
-        accel_wanted = accel_wanted.rotate(np.radians(-15),'x')
-        t.upVec = t.upVec.rotate(np.radians(-15),'x')
-    elif timenow < 5.0:
-        accel_wanted = 2*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(50),'z')
-        accel_wanted = accel_wanted.rotate(np.radians(30),'x')
-        t.upVec = t.upVec.rotate(np.radians(30),'x')
-    elif timenow < 7.0:
-        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(-40),'z')
-        accel_wanted = accel_wanted.rotate(np.radians(-5),'x')
-        t.upVec = t.upVec.rotate(np.radians(-5),'x')
-    elif timenow < 9.0:
-        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(-20),'z')
+        accel_wanted = 7*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(-20),'z')
         accel_wanted = accel_wanted.rotate(np.radians(5),'x')
         t.upVec = t.upVec.rotate(np.radians(5),'x')
+    elif timenow < 3.0:
+        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(25),'z')
+        accel_wanted = accel_wanted.rotate(np.radians(-4),'x')
+        t.upVec = t.upVec.rotate(np.radians(-4),'x')
+    elif timenow < 5.0:
+        accel_wanted = 6*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(80),'z')
+        accel_wanted = accel_wanted.rotate(np.radians(120),'x')
+        t.upVec = t.upVec.rotate(np.radians(120),'x')
+    elif timenow < 7.0:
+        accel_wanted = 7*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(-40),'z')
+        accel_wanted = accel_wanted.rotate(np.radians(10),'x')
+        t.upVec = t.upVec.rotate(np.radians(10),'x')
+    elif timenow < 9.0:
+        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted.rotate(np.radians(-20),'z')
+        accel_wanted = accel_wanted.rotate(np.radians(20),'x')
+        t.upVec = t.upVec.rotate(np.radians(20),'x')
     else:
         #accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(10),'z')
         #t.upVec = t.upVec.rotate(np.radians(10),'z')

@@ -7,7 +7,7 @@ def init(plot,datapack):
     targetData,missileData,flaresData = datapack
 
     plot.set_xlim3d([0,7000])
-    plot.set_ylim3d([-50,200])
+    plot.set_ylim3d([-200,50])
     plot.set_zlim3d([2700,3000])
 
     plot.set_xlabel('거리(m)')
@@ -31,9 +31,13 @@ def init(plot,datapack):
                         targetData]
 
     color = 'red'
-    missileObjects = [plot.plot(0,0,0, color=color,linewidth=0.5),
+    missileObjects = [plot.plot(0,0,0, color=color,linewidth=0.5), #mainplot
                         plot.text3D(0,0,0,'', color=color, ha='right', size='small'),
-                        missileData]
+                        missileData,
+                        plot.plot(0,0,0, color='magenta',linewidth=1), #fvec
+                        plot.plot(0,0,0, color='cyan',linewidth=1), #upvec
+                        plot.plot(0,0,0, color='green',linewidth=0.2) #sVec
+                    ]
 
     color = 'purple'
     flareObjects = [
@@ -88,15 +92,31 @@ def update(frame,ax,simPlots):
 
     #------------------------------------------
     ## missile
-    line_object, text_object, missileObjectList = missileObjects
+    line_object, text_object, missileObjectList, line_fvec, line_upvec, line_svec = missileObjects
     # basic trajectories
     direction_vectors = [o.pVec for o in missileObjectList[:frame+1]]
     line_object[0].set_data_3d([o.x for o in direction_vectors],
                             [o.y for o in direction_vectors],
                             [o.z for o in direction_vectors])
+    
+    missile = missileObjectList[frame]
+    barlen = 300
+    bardata = missile.pVec+barlen*missile.fVec
+    line_fvec[0].set_data_3d([missile.pVec.x, bardata.x],
+                             [missile.pVec.y, bardata.y],
+                             [missile.pVec.z, bardata.z])
+    bardata = missile.pVec+barlen*missile.upVec
+    line_upvec[0].set_data_3d([missile.pVec.x, bardata.x],
+                             [missile.pVec.y, bardata.y],
+                             [missile.pVec.z, bardata.z])
+    bardata = missile.pVec+barlen*missile.sVec
+    line_svec[0].set_data_3d([missile.pVec.x, bardata.x],
+                             [missile.pVec.y, bardata.y],
+                             [missile.pVec.z, bardata.z])
+
     #set_position only fetches first 2(x,y)
-    text_object.set_position_3d(missileObjectList[frame].pVec.toList())
-    text_object.set_text(genTextStr(missileObjectList[frame]))
+    text_object.set_position_3d(missile.pVec.toList())
+    text_object.set_text(genTextStr(missile))
 
     #------------------------------------------
     ## flare s 
