@@ -1,24 +1,21 @@
 # dot, cross, norm
 import numpy as np
-import copy
+#import copy
 
 # custom
 from data import INFINITE as INFINITE #data.INFINITE
 
 class Vec3D:
-    # P = list(3) or Vec3D(3) ...
     def __init__(self, x = None, y = None, z = None):
         self.x = 0 if x == None else x
         self.y = 0 if y == None else y
         self.z = 0 if z == None else z
+    #-------------
     # +
     def __add__(self, other):
-        if type(other) is Vec3D: #typeother?
-            return Vec3D(self.x + other.x, self.y + other.y, self.z + other.z)
-        elif type(other) is int or type(other) is float or type(other) is np.float64:
-            return Vec3D(self.x + other,self.y + other, self.z + other)
-        else:
-            return Vec3D(self.x + other[0], self.y + other[1], self.z + other[2])
+        if type(other) is not Vec3D:
+            raise TypeError('Vec3D add does not support'+str(type(other))+'.\nonly supports operations between Vec3D Object.')
+        return Vec3D(self.x + other.x, self.y + other.y, self.z + other.z)
     def __iadd__(self, other):
         return self + other
     def __radd__(self, other):
@@ -27,12 +24,9 @@ class Vec3D:
         return self
     # -
     def __sub__(self, other):
-        if type(other) is Vec3D: #isinstance?
-            return Vec3D(self.x - other.x, self.y - other.y, self.z - other.z)
-        elif type(other) is int or type(other) is float or type(other) is np.float64:
-            return Vec3D(self.x - other, self.y - other, self.z - other)
-        else:
-            return Vec3D(self.x - other[0], self.y - other[1], self.z - other[2])
+        if type(other) is not Vec3D:
+            raise TypeError('Vec3D sub does not support'+str(type(other))+'.\nonly supports operations between Vec3D Object.')
+        return Vec3D(self.x - other.x, self.y - other.y, self.z - other.z)
     def __isub__(self, other):
         return self - other
     def __rsub__(self, other):
@@ -41,7 +35,7 @@ class Vec3D:
         return -1 * self
     # * scalar only
     def __mul__(self, other):
-        if type(other) is not int and type(other) is not float and type(other) is not np.float64:
+        if type(other) not in {int, float, np.float64}:
             raise TypeError('Vec3D mul does not support'+str(type(other))+'.\nonly supports scalar(int or float) operations.')
         return Vec3D(self.x * other, self.y * other, self.z * other)
     def __imul__(self, other):
@@ -50,7 +44,7 @@ class Vec3D:
         return self * other
     # / scalar only, no floordiv!
     def __truediv__(self, other):
-        if type(other) is not int and type(other) is not float and type(other) is not np.float64:
+        if type(other) not in {int, float, np.float64}:
             raise TypeError('Vec3D div does not support'+str(type(other))+'.\nonly supports scalar(int or float) operations.')
         # some big number
         divider = INFINITE if other == 0 else other
@@ -73,27 +67,12 @@ class Vec3D:
     def __repr__(self):
         return str([self.x, self.y, self.z])
     #-------------
-    def clone(self):
-        return copy.deepcopy(self)
+    #def clone(self):
+    #    return copy.deepcopy(self)
     def toArray(self):
         return np.array([self.x, self.y, self.z])
     def toList(self):
         return [self.x, self.y, self.z]
-    #-------------
-    def setSpherical(self,r,theta,rho):
-        """
-        inclination(theta)[-pi/2~pi/2], azimuth(rho)[0~pi] in rads
-        """
-        theta = theta + np.pi/2 #inclination(theta)[-pi/2~pi/2],
-        self.x = r*np.cos(rho)*np.sin(theta)
-        self.y = r*np.sin(rho)*np.sin(theta)
-        self.z = r*np.cos(theta)
-        return self
-    def setSphericalDegree(self,r,theta,rho):
-        return self.setSpherical(r,np.radians(theta),np.radians(rho))
-    def setSphericalDegree(self,lst):
-        r, theta, rho = lst
-        return self.setSpherical(r,np.radians(theta),np.radians(rho))
     #---------------------------------
     # degree in rads, axis = 'x','y','z'
     @staticmethod
@@ -118,16 +97,18 @@ class Vec3D:
                 rot_sin*obj.x + rot_cos*obj.y,
                 obj.z
             )
-        return tempVec
+        #return tempVec
+        self = tempVec
+        return self
     @staticmethod
     def rotateDegree(obj, degree, axis):
-        return Vec3D.rotate(obj,np.rads(degree),axis)
+        return Vec3D.rotate(obj,np.radians(degree),axis)
     @staticmethod
-    def translate(obj, P):
-        return obj + P
+    def translate(obj, V):
+        return obj + V
     @staticmethod
-    def scale(obj, P):
-        return obj * P
+    def scale(obj, a):
+        return obj * a
     @staticmethod
     def dot(obj1, obj2):
         result = np.dot(obj1.toArray(),obj2.toArray())
@@ -146,6 +127,21 @@ class Vec3D:
     def normalize(obj):
         obj /= Vec3D.norm(obj)
         return obj
+    #-------------
+    @staticmethod
+    def spherical(r,theta,rho):
+        """
+        inclination(theta)[-pi/2~pi/2], azimuth(rho)[0~pi] in rads
+        """
+        obj = Vec3D()
+        #theta = theta + np.pi/2 #inclination(theta)[-pi/2~pi/2],
+        obj.x = r*np.cos(rho)*np.sin(theta)
+        obj.y = r*np.sin(rho)*np.sin(theta)
+        obj.z = r*np.cos(theta)
+        return obj
+    @staticmethod
+    def sphericalDegree(r,theta,rho):
+        return Vec3D.spherical(r,np.radians(theta),np.radians(rho))
 
 # root object
 class SimObject:
@@ -193,9 +189,6 @@ class SimObject:
         self.throttle = 0 #0
         self.clock_sec = 0 #56
 
-    def clone(self):
-        return copy.deepcopy(self)
-
 # (1x SimObject), 1x fireFlareAt[float,...], 1x isAfterburnerOnAt[[float,float],...]
 class TargetObject(SimObject):
     def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, fireFlareAt=None, isAfterburnerOnAt=None):
@@ -204,8 +197,6 @@ class TargetObject(SimObject):
         self.isAfterburnerOnAt = [] if isAfterburnerOnAt == None else isAfterburnerOnAt
         self.isAfterburnerOn = False
         self.isHit = False
-    def clone(self):
-        return copy.deepcopy(self)
 
 # same as SimObject?
 class FlareObject(SimObject):
@@ -214,8 +205,6 @@ class FlareObject(SimObject):
         super().__init__(newpVec,vVec,aVec,fVec,upVec,data)
         self.isFired = False
         self.isOff = False
-    def clone(self):
-        return copy.deepcopy(self)
 
 # (1x SimObject), 1x seekerVec, booleans...
 class MissileObject(SimObject):
@@ -232,9 +221,4 @@ class MissileObject(SimObject):
         # PID error values
         self.PIDe1=Vec3D()
         self.PIDe2=Vec3D()
-        if data == None:
-            self.intgK=0.0
-        else:
-            self.intgK=data['g_ga_accelControlIntg']
-    def clone(self):
-        return copy.deepcopy(self)
+        self.intgK = 0.0 if data == None else data['g_ga_accelControlIntg']
