@@ -18,7 +18,7 @@ import sim1,sim2,sim3,sim4, sim5
 #-----------------------------------------------
 
 target =  mobj.TargetObject(data=data.target1,    pVec = vec3(3000,0,3000),  vVec=vec3(280, 0, 0),  isAfterburnerOnAt=[(0.0,6.0)] )
-missile = mobj.MissileObject(data=data.missile1,  pVec = vec3(0,0,3000),     sVec=vec3(3000,0,3000) )
+missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=vec3(3000,0,3000) )
 
 flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
 
@@ -32,7 +32,7 @@ def periodicFlare(start,flareSeries,flaresSeriesPeriod,flarePeriod):
 
 #flareTimes = []
 #flareTimes = [3.1,3.3,3.5, 6.1,6.3,6.5]
-flareTimes = periodicFlare(1.0, 3, 1.0, 0.1)
+flareTimes = periodicFlare(1.0, 3, 3.0, 0.1)
 print('flare @ ',flareTimes)
 
 flares = [ mobj.FlareObject(data=flareTypeData) for i in range(len(flareTimes)) ]
@@ -51,7 +51,7 @@ asim1 = fig.add_subplot(grid[:3,:3],projection = '3d')
 asim2 = fig.add_subplot(grid[:2,3:5])
 asim3 = fig.add_subplot(grid[2,3])
 asim4 = fig.add_subplot(grid[2,4])
-asim5 = fig.add_subplot(grid[1,4]) # seeker zoomin
+asim5 = fig.add_subplot(grid[0,4]) # seeker zoomin
 
 sim1Plots = sim1.init(asim1, [targetData,missileData,flaresData])
 sim2Plots = sim2.init(asim2, [targetData,missileData,flaresData])
