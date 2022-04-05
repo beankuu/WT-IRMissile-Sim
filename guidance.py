@@ -1,4 +1,3 @@
-from locale import normalize
 import numpy as np
 
 #customs
@@ -6,123 +5,6 @@ import data
 import mObjects as mobj
 from mObjects import Vec3D as vec3
 
-#!===============================================================
-# Force CALCULATIONS
-#!===============================================================
-
-#mWingArea = math.pi *math.pow((data.m['caliber'])/2,2)*data.m['wingAreamult']
-
-#mThrust = data.m['force'] 
-#mThrustTime =  data.m['timeFire']
-#mMass = [data.m['mass'],data.m['massEnd']]
-#mDragCx = data.m['dragCx']
-#mCxK = data.m['CxK']
-#mLength = data.m['length']
-#mDistFromCmToStab = data.m['distFromCmToStab'] #(mass center <-> wing) distance
-#mCLMax = 2*np.pi*data.m['finsAoA']
-"""
-Drag(D) = Coeff(Cd) * (air)Density * velocity^2 * (wing)Area * 0.5
-Lift(L) = Coeff(CL) * (air)Density * velocity^2 * (wing)Area * 0.5
-
-CDrag = CdK + K(CL - CL0)^2,
-where CdK = K*CL^2, (given)CxK = Drag lift-induced-drag (K)
-
-CLMax = 2 * PI * CritAoA(rad)
-"""
-# Drag = Friction drag + Pressure drag + Compression drag + Lift induced drag
-
-# add thrust towards forward (vVec)
-def getThrust(m,time):
-    """
-    get Thrust at given time
-    """
-    if time <= m.data['timeFire']:
-        return m.data['force']
-    else:
-        return 0.0
-
-#TODO is it correct...?
-def getLift(m,autoReqAccel):
-    """
-    get Lift Coefficient of missile at given angle request
-    """
-    angleReq = np.arccos(autoReqAccel.normalize().dot(m.upVec))/(2*np.pi)
-    CLMax = m.data['finsAoA']
-    return CLMax if angleReq >= CLMax else angleReq
-
-#TODO is it correct...?
-def getDrag(m,autoReqAccel):
-    """
-    get Drag Coefficient of missile at given Lift Coefficient
-    """
-    # Cd = Cd0 + CL^2 / PI*AR*e
-    # AR = s^2 / A
-    # s = span, A = wing area, e = efficiency factor
-    # elliptical wing e = 1.0, rectangular wing e= 0.7
-    # (Total Drag) Cd = (zero lift)Cd0 + (induced drag)Cdi
-    angleReq = np.arccos(autoReqAccel.normalize().dot(m.fVec))/(2*np.pi)
-    CLMax = m.data['finsAoA'] if angleReq >= m.data['finsAoA'] else angleReq
-    
-    dragCx = m.data['dragCx'] #(zero lift)Cd0
-    K = m.data['CxK'] #K for Cdi(Drag lift-induced drag)
-    CdK = K*CLMax*CLMax
-    return dragCx+CdK
-
-def getGravity(m):
-    """
-    get gravity of missile at given height
-    """
-    gravity = data.getGravity(m.pVec.z)
-    return gravity
-
-# return in m/s
-def getAccel(m,time,autoReqAccel):
-    # Reynolds Viscosity = density*velocity*length / viscosityCoeff
-    # Reynolds -> vortex
-    # not implemented here!
-    #------------
-    # constant calculations
-    airDensity = data.getAirDensity(m.pVec.z)
-    velocity = m.vVec.norm()
-    #wingArea = np.pi *np.power((m.data['caliber'])/2,2)*m.data['wingAreamult']
-    wingArea = m.data['caliber']*m.data['length']*m.data['wingAreamult']
-    drag_lift_constant = airDensity * velocity * velocity * wingArea * 0.5
-    #------------
-    # current time's mass calculation
-    if time <= m.data['timeFire']:
-        massNow = m.data['mass']-(m.data['mass']-m.data['massEnd'])*(time/m.data['timeFire'])
-    else:
-        massNow = m.data['massEnd']
-    #===================================
-    #Torque change (fvec change)
-    wingDist = m.data['length']*0.5*m.data['distFromCmToStab']
-    rvec = wingDist*m.fVec 
-    accelDiff = (autoReqAccel-m.fVec).normalize()
-    #m.fVec = m.fVec if autoReqAccel.norm() == 0 else rvec.cross(accelDiff).normalize()
-    
-    #------------
-    Thrust = getThrust(m,time)
-    LiftCoeff = getLift(m,autoReqAccel)
-    DragCoeff = getDrag(m,autoReqAccel)
-    Gravity = getGravity(m)
-    #------------
-    ForceThrust = Thrust*m.fVec
-    ForceLift = LiftCoeff*drag_lift_constant*m.upVec
-    ForceDrag = DragCoeff*drag_lift_constant*-m.vVec.normalize()
-    ForceGravity = vec3(0,0,-1)*Gravity
-    
-    forceList = [
-        ForceThrust,
-        ForceLift,
-        ForceDrag,
-        ForceGravity
-    ]
-    #print(m.fVec,forceList)
-    #------------
-    #print(LiftCoeff,DragCoeff)
-    return m.fVec*Thrust/massNow+autoReqAccel
-    #return sum(forceList)/massNow + autoReqAccel
-    #return sum(forceList)/massNow
 #!===============================================================
 # Guidance CALCULATIONS
 #!===============================================================
@@ -148,8 +30,14 @@ def seeker_simulator(m, allObjects):
     for obj in objects:
         calcRange = (obj.pVec - m.pVec).norm()
         calcAngle = np.rad2deg(np.arccos((obj.pVec - m.pVec).normalize().dot(m.sVec)))
-        if calcAngle <= m.data['g_fov']/2 and calcRange <= m.data['rangeBand0']:
-            targetList.append(obj)
+        if calcRange <= m.data['rangeBand0']:
+            # flare resistance
+            if m.isLocked:
+                if calcAngle <= m.data['g_fov']/2:
+                    targetList.append(obj)
+            else:
+                if calcAngle <= m.data['g_angleMax']/2:
+                    targetList.append(obj)
     
     # 2. from targetlist, ignore brightness below 1
     #"""
@@ -199,7 +87,8 @@ def seeker_simulator(m, allObjects):
             target = obj
     
     # 4. get target angle
-    target_angle = np.rad2deg(np.arccos(m.sVec.dot(m.vVec.normalize())))
+    target_angle = np.rad2deg(np.arccos(m.fVec.dot(m.sVec)))
+    #print(target_angle, m.data['g_angleMax'])
     if np.abs(target_angle) <= m.data['g_angleMax']:
         return (target.pVec - m.pVec).normalize(), True
     else:
@@ -262,25 +151,19 @@ def getMissileData(m,frame,allObjects):
     m.sVec = newSVec
     #m.fVec = m.sVec
     
-    autoReqAccel = vec3()
+    guideReqAccel = vec3()
     #MaxG Detection
     if frame*data.dt >= m.data['g_ga_timeOut']:
         if m.isTrackable:
             accelMax = m.data['g_ga_reqAccelMax']*data.getGravity(m.pVec.z)
             if newAccel.norm() > accelMax:
-                autoReqAccel = accelMax*newAccel.normalize()
+                guideReqAccel = accelMax*newAccel.normalize()
                 m.isMaxG = True
             else:
-                autoReqAccel = newAccel
+                guideReqAccel = newAccel
                 m.isMaxG = False
             m.isTrackable = False
         else:
             rate = 1//(m.data['g_rateMax']*data.dt)
             if rate == 0 or np.mod(frame, rate) == 0: m.isTrackable = True
-    #3. Add other forces
-    m.aVec = getAccel(m,frame*data.dt,autoReqAccel)
-    #4. Get new velocity and position
-    m.pVec += m.vVec *data.dt + 0.5*m.aVec*data.dt*data.dt
-    m.vVec += m.aVec *data.dt
-    
-    return m
+    return guideReqAccel
