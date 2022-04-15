@@ -5,6 +5,18 @@ import data
 import numpy as np
 
 def init(plot,datapack):
+    """
+    initializing plot,
+    generating 2d data to plot,
+    same as sim2, but simulates(zooms) only things 'inside' fov circle
+
+    Args:
+        plot (matplotlib.pyplot.subplot) : matplotlib plot to be drawn
+        datapack ([targetData, missileData, flaresData]) : [list of target, list of missile, list of flare] data
+
+    Returns:
+        list: list of [list of [matplotlib plot,matplotlib text...]...]
+    """
     targetData,missileData,flaresData = datapack
     maxRange = missileData[0].data['rangeBand0']
     maxAngle = missileData[0].data['g_fov']/2
@@ -95,6 +107,14 @@ def init(plot,datapack):
     return [targetObjects,missileData,flaresObjects]
 #-----------------------------------------------------------
 def resetColor(resetObject,objType):
+    """
+    resets color of mathplotlib plot for given object Type
+
+    sets color of matplotlib plot, for given object type
+    Args:
+        resetObject (matplotlib plot) : given plot
+        objType (string) : object type in string
+    """
     if objType == 'target': color = 'blue'
     elif objType == 'missile': color = 'red'
     elif objType == 'flare': color = 'purple'
@@ -102,9 +122,25 @@ def resetColor(resetObject,objType):
     resetObject.set_color(color)
 
 def genTextStr(m,t):
+    """
+    generates string to be used by matplotlib text
+
+    Args:
+        m (mObjects.MissileObject) : Missile Object
+        t (mObjects.TargetObject) : Target Object
+    Returns:
+        string : text
+    """
     return t.data['name'] + '\n' + str(round(vec3.norm(m.pVec-t.pVec)/1000,1))+'km'
 
-def update(frame,ax,simPlots):
+def update(frame,simPlots):
+    """
+    update of plot, per frame
+
+    Args:
+        frame (float) : frame(time)
+        simPlots (list of object data) : packed objects to be updated
+    """
     targetObjects,missileData,flaresObjects = simPlots
     #------------------------------------------
     # [[textplot, data],[textplot, data],...]

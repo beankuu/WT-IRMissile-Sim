@@ -23,6 +23,17 @@ missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVe
 flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
 
 def periodicFlare(start,flareSeries,flaresSeriesPeriod,flarePeriod):
+    """
+    generates list of flare period
+
+    Args:
+        start (float) : flare start time (s)
+        flareSeries (int) : how many flares per series 
+        flaresSeriesPeriod (float) : delta time between elements in series (s)
+        flarePeriod (float) : delta time between series as a pack (s)
+    Returns:
+        list : list of flare periods (s)
+    """
     periodicResult = []
     totalSeries = int((data.TIMEMAX-start)//flaresSeriesPeriod)
     for i in range(totalSeries):
@@ -61,11 +72,17 @@ sim5Plots = sim5.init(asim5, [targetData,missileData,flaresData])
 
 #! update function
 def update(frame):
-    sim1.update(frame,asim1,sim1Plots)
-    sim2.update(frame,asim2,sim2Plots)
-    sim3.update(frame,asim3,sim3Plots)
-    sim4.update(frame,asim4,sim4Plots)
-    sim5.update(frame,asim5,sim5Plots)
+    """
+    root of update of plot, per frame
+
+    Args:
+        frame (float) : frame(time)
+    """
+    sim1.update(frame,sim1Plots)
+    sim2.update(frame,sim2Plots)
+    sim3.update(frame,sim3Plots)
+    sim4.update(frame,sim4Plots)
+    sim5.update(frame,sim5Plots)
     
 #---------------------------------------------------------------------------
 animation = ani.FuncAnimation(

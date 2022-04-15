@@ -206,24 +206,70 @@ temperatureList = [
     (15000, -56.50), (20000, -56.50), (25000,-51.60),  (30000, -46.64),  (40000, -22.80),
     (50000, -2.5), (60000,-26.13), (70000,-53.57), (80000, -74.51)
 ]
-def calcLinear(lst,nearkey):
-    index = min(range(len(lst)),key=lambda i: abs(lst[i][0]-nearkey))
-    if index == 0 : index += 1
-    aH = lst[index][0];   aV = lst[index][1]
-    bH = lst[index-1][0]; bV = lst[index-1][1]
-    return bV + (nearkey-bH)*((bV-aV)/(bH-aH))
+def calcLinear(pairsList,reqKey):
+    """
+    linearly calculates 'value' for given 'key', from given 'list of pairs'
 
-# height(m)
+    Args:
+        pairsList (int): list of pairs(key,value)
+        reqKey    (str): key, for wanted value
+
+    Returns:
+        float: linearly calculated value
+    """
+    index = min(range(len(pairsList)),key=lambda i: abs(pairsList[i][0]-reqKey))
+    if index == 0 : index += 1
+    aH = pairsList[index][0];   aV = pairsList[index][1]
+    bH = pairsList[index-1][0]; bV = pairsList[index-1][1]
+    return bV + (reqKey-bH)*((bV-aV)/(bH-aH))
+
 def getAirDensity(height):
+    """
+    gets density of air, at given height
+
+    Args:
+        height (float): height of object(m)
+
+    Returns:
+        float: density of air
+    """
     return calcLinear(airDensityList,height)
-# acceleration(m/s^2) height(m)
+
 def getGravity(height):
+    """
+    gets gravity, at given height
+
+    Args:
+        height (float): height of object(m)
+
+    Returns:
+        float: gravity(m/s^2)
+    """
     return calcLinear(gravityList,height)
-# height(m) temperature(C)
+
 def getTemperatureAtHeight(height):
+    """
+    gets environment temperature, at given height
+
+    Args:
+        height (float): height of object(m)
+
+    Returns:
+        float: environment temperature(C)
+    """
     return calcLinear(temperatureList,height)
 
 def calcMach(velocity, height):
+    """
+    gets Mach speed, at given height
+
+    Args:
+        velocity (float):   velocity of object(m/s)
+        height (float):     height of object(m)
+
+    Returns:
+        float: mach
+    """
     #http://www.aerospaceweb.org/question/atmosphere/q0126.shtml
     # mach = velocity / sound_speed_at_given_altitude
     # sound_speed_at_given_altitude = 331 + 0.6*temperature

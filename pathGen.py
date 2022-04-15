@@ -1,5 +1,3 @@
-from locale import normalize
-from re import L
 import numpy as np
 
 # customs
@@ -11,7 +9,19 @@ import data
 import mObjects as mobj
 from mObjects import Vec3D as vec3
 
+import copy
+
 def isHit(t, m):
+    """
+    boolean result for : did target and missile hit?
+
+    Args:
+        t (mObjects.TargetObject): target object
+        m (mObjects.MissileObject): missile object
+
+    Returns:
+        boolean : did target and missile hit?
+    """
     mtDistance = vec3.norm(m.pVec-t.pVec)
     ## Method 1: minimum distance between two vectors
     vVecCross = m.upVec if vec3.normalize(m.vVec) == vec3.normalize(t.vVec) else vec3.cross(m.vVec,t.vVec)
@@ -27,15 +37,29 @@ def isHit(t, m):
 
 def genTargetTrajectory(target,f):
     """
-    IN: TargetObject, Framenumber, list of all objects(for seeker_simulator)
-    OUT: TargetObject at given frame
+    generating Target Object Data at given frame and target
+
+    Args:
+        t (mObjects.TargetObject): target object
+        f (frame) : current frame(time)
+
+    Returns:
+        mObjects.TargetObject: copy of generated Target Object Data
     """
-    return targetPath.genTargetMovement1(target,f).clone()
+    return copy.deepcopy(targetPath.genTargetMovement1(target,f))
 #===============================================================
 def genFlareTrajectory(flare,f,flareStartTime,target):
     """
-    IN: FlareObject, Framenumber(int), flareStartTime(float), targetObject
-    OUT: FlareObject at given frame
+    generating Flare Object Data at given frame and flare
+
+    Args:
+        flare (mObjects.FlareObject): flare object
+        f (frame) : current frame(time)
+        flareStartTime (float) : start time(launch time) of flare
+        target (mObjects.TargetObject) : target(source) of flare
+
+    Returns:
+        mObjects.FlareObject: copy of generated Flare Object Data
     """
     startFrame = flareStartTime/data.dt
     endFrame = (flareStartTime+flare.data['timeLife'])/data.dt
@@ -46,26 +70,45 @@ def genFlareTrajectory(flare,f,flareStartTime,target):
         flare.isOff = True
     else:
         flare.pVec = vec3(data.INFINITE,data.INFINITE,data.INFINITE)
-    return flare.clone()
+    return copy.deepcopy(flare)
 #===============================================================
 def genMissileTrajectory(missile,f,allObjects):
     """
-    IN: MissileObject, Framenumber, all objects at current frame=[target,flares]
-    OUT: MissileObject at given frame
+    generating Missile Object Data at given frame and missile
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        f (frame) : current frame(time)
+        allObjects ([mObjects.SimObject...]) : list of object in field (TargetObject, FlareObject)
+
+    Returns:
+        mObjects.MissileObject: copy of generated Missile Object Data
     """
-    guideReqAccel = guide.getMissileData(missile,f,allObjects)
+    guideReqAccel = guide.getGuideAccel(missile,f,allObjects)
     acceleration = propulsion.getAccel(missile,f*data.dt,guideReqAccel)
     #3. Add other forces
     missile.aVec = acceleration
     #4. Get new velocity and position
-    missile.pVec += missile.vVec*data.dt + 0.5*missile.aVec*data.dt*data.dt
+    missile.pVec += missile.vVec*data.dt# + 0.5*missile.aVec*data.dt*data.dt
     missile.vVec += missile.aVec*data.dt
-    return missile.clone()
+    return copy.deepcopy(missile)
 #===============================================================
+#!===============================================================
+# ENTRY POINT
+#!===============================================================
 def genPaths(target,missile,flaredataflares):
     """
-    IN: targetObject, missileObject, [flare(type)Data, flareTimeList]
-    OUT: targetData, missileData, flareData
+    generating path Object data of target,missile,flares
+
+    Args:
+        target  (mObjects.TargetObject) : target Object
+        missile (mObjects.MissileObject) : missile object
+        flaredataFlares ([mObjects.flareObject...] : list of flare objects
+
+    Returns:
+        [mObjects.targetObject...] : list of Target Object Data, per frame
+        [mObjects.MissileObject...] : list of Missile Object Data, per frame
+        [[mObjects.FlareObject...]...] : list of (list of Flare Object Data, per frame) per Flare Object
     """
     flares, flareTimes = flaredataflares
 

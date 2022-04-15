@@ -13,6 +13,7 @@ class Vec3D:
     #-------------
     # +
     def __add__(self, other):
+        #print(self,other)
         if type(other) is not Vec3D:
             raise TypeError('Vec3D add does not support'+str(type(other))+'.\nonly supports operations between Vec3D Object.')
         return Vec3D(self.x + other.x, self.y + other.y, self.z + other.z)
@@ -67,16 +68,45 @@ class Vec3D:
     def __repr__(self):
         return str([self.x, self.y, self.z])
     #-------------
-    #def clone(self):
-    #    return copy.deepcopy(self)
     def toArray(self):
+        """
+        Vec3D object to numpy.array([x,y,z])
+
+        Args:
+            self (mObjects.Vec3D): Vec3D Object
+
+        Returns:
+            numpy.array : np.array([x,y,z])
+        """
         return np.array([self.x, self.y, self.z])
     def toList(self):
+        """
+        Vec3D object to List(x,y,z)
+
+        Args:
+            self (mObjects.Vec3D): Vec3D Object
+
+        Returns:
+            list : [x,y,z]
+        """
         return [self.x, self.y, self.z]
     #---------------------------------
     # degree in rads, axis = 'x','y','z'
     @staticmethod
     def rotate(obj, rads, axis):
+        """
+        rotation of vector, in given angle(rads) and axis
+        !temporary method, for generating target's Path
+        !remove after shifting targetPath generation to Rodrigues' rotation formula 
+
+        Args:
+            obj           (mObjects.Vec3D): Vector to rotate
+            rads          (float):  rotate angle in radians
+            axis          (string): axis to rotate object, if not given, default is 'z' axis
+
+        Returns:
+            mObjects.Vec3D : rotated vector
+        """
         rot_cos = np.cos(rads)
         rot_sin = np.sin(rads)
         if axis == 'x':
@@ -102,36 +132,115 @@ class Vec3D:
         return self
     @staticmethod
     def rotateDegree(obj, degree, axis):
+        """
+        rotation of vector, in given angle(degree) and axis
+        !temporary method, for generating target's Path
+        !remove after shifting targetPath generation to Rodrigues' rotation formula 
+
+        Args:
+            obj           (mObjects.Vec3D): Vector to rotate
+            rads          (float):  rotate angle in degree
+            axis          (string): axis to rotate object, if not given, default is 'z' axis
+
+        Returns:
+            mObjects.Vec3D : rotated vector
+        """
         return Vec3D.rotate(obj,np.radians(degree),axis)
     @staticmethod
     def translate(obj, V):
+        """
+        translation of vector, for given vector amount
+        ! since we're not using matrix, this formula is useless
+
+        Args:
+            obj           (mObjects.Vec3D) : Vector to translate
+            V             (mObjects.Vec3D) : given vector amount to translate
+
+        Returns:
+            mObjects.Vec3D : translated vector
+        """
         return obj + V
     @staticmethod
     def scale(obj, a):
+        """
+        scaling of vector, for given amount
+        ! same as scalar multiplication of vector(__mul__)
+        ! since we're not using matrix, this formula is useless
+
+        Args:
+            obj           (mObjects.Vec3D) : Vector to scale
+            a             (float) :          given amount to scale
+
+        Returns:
+            mObjects.Vec3D : scaled vector
+        """
         return obj * a
     @staticmethod
     def dot(obj1, obj2):
+        """
+        dot product of 2 Vec3D objects
+
+        Args:
+            obj1          (mObjects.Vec3D) : 1st vector for calculating dot product
+            obj2          (mObjects.Vec3D) : 2nd vector for calculating dot product
+
+        Returns:
+            float : dot product of given 2 vectors
+        """
         result = np.dot(obj1.toArray(),obj2.toArray())
-        #return 1 if np.abs(result) > 1 else result
         return result
     @staticmethod
     def cross(obj1, obj2):
+        """
+        cross product of 2 Vec3D objects
+
+        Args:
+            obj1          (mObjects.Vec3D) : 1st vector for calculating cross product
+            obj2          (mObjects.Vec3D) : 2nd vector for calculating cross product
+
+        Returns:
+            mObjects.Vec3D : cross product of given 2 vectors
+        """
         result = np.cross(obj1.toArray(),obj2.toArray())
         return Vec3D(result[0],result[1],result[2])
-        #self.x = result[0]; self.y = result[1]; self.z = result[2]
-        #return self #chaining
     @staticmethod
     def norm(obj):
+        """
+        norm of given Vec3D object
+
+        Args:
+            obj (mObjects.Vec3D) : given vector
+
+        Returns:
+            float : norm of vector object
+        """
         return float(np.linalg.norm(obj.toArray()))
     @staticmethod
     def normalize(obj):
+        """
+        normalized vector for given vector
+
+        Args:
+            obj          (mObjects.Vec3D) : given vector
+
+        Returns:
+            mObjects.Vec3D : normalized given vector
+        """
         obj /= Vec3D.norm(obj)
         return obj
     #-------------
     @staticmethod
     def spherical(r,theta,rho):
         """
-        inclination(theta)[-pi/2~pi/2], azimuth(rho)[0~pi] in rads
+        spherical coordinates to cartesian coordinates
+
+        Args:
+            r (float) : radius
+            theta (theta) : inclination in radians
+            rho (float) : azimuth in radians
+
+        Returns:
+            mObjects.Vec3D : cartesian coordinate of vector
         """
         obj = Vec3D()
         #theta = theta + np.pi/2 #inclination(theta)[-pi/2~pi/2],
@@ -141,6 +250,17 @@ class Vec3D:
         return obj
     @staticmethod
     def sphericalDegree(r,theta,rho):
+        """
+        spherical coordinates to cartesian coordinates
+
+        Args:
+            r (float) : radius
+            theta (theta) : inclination in degrees
+            rho (float) : azimuth in degrees
+
+        Returns:
+            mObjects.Vec3D : cartesian coordinate of vector
+        """
         return Vec3D.spherical(r,np.radians(theta),np.radians(rho))
 
 # root object
@@ -155,39 +275,21 @@ class SimObject:
         self.data = {} if data == None else data
 
         self.aileron = 0 #0, %
-        self.elevator = 0 #0, %
-        self.rudder = 0 #-7, %
-        self.Ny = 0 #1
-        self.Vy = 0 #0, m/s
-        self.Wx = 0 #0, deg/s
+        self.elevator = 0 #0, % 
+        self.rudder = 0 #-7, % 
+        self.Ny = 0 #1 #GForce
+        self.Vy = 0 #0, m/s #Upwards Velocity
+        self.Wx = 0 #0, deg/s #Rolling
         self.AoA = 0 #3.9, deg
         self.AoS = 0 #72.5, deg
-        self.TAS = 0 #0, km/h
         self.IAS = 0 #0, km/h
-        self.M = 0 #0
-        #self.manifold_pressure1 #?
-        self.atm = 0 #0.28
-        self.pitch1 = 0  # 24, deg
-        self.thrust1 = 0  # 1, kgs
-        self.efficiency1 = 0  # 0, %
         
         #----------------
         self.speed = 0 #-0.0281
-        self.vario = 0 #0
-        self.altitude_hour = 0 #61.626
-        self.altitude_min = 0 #61.626
-        self.altitude_10k = 0 #61.626
-        self.aviahorizon_roll = 0 #-0.056145
-        self.aviahorizon_pitch = 0 #-12.78846
         self.bank = 0 # 0.056
         self.turn = 0 # 0
-        self.compass = 0 #252.50
-        self.manifold_pressure = 0 #0.279
-        self.head_temperature = 0 #235.59
+        #self.head_temperature = 0 #235.59
         self.trimmer = 0 #0
-        self.prop_pitch = 0 #0
-        self.throttle = 0 #0
-        self.clock_sec = 0 #56
 
 # (1x SimObject), 1x fireFlareAt[float,...], 1x isAfterburnerOnAt[[float,float],...]
 class TargetObject(SimObject):

@@ -4,9 +4,17 @@ import data
 import mObjects as mobj
 from mObjects import Vec3D as vec3
 
+# TODO : Temporary workout. Fix after missile guidance workout
 def getLiftCoeff(t,reqAccel):
     """
-    get Lift Coefficient of target at given angle request
+    get Lift Coefficient of missile at given angle request
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        guideReqAccel (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        float: Lift Coefficient
     """
     angleReq = np.arccos(
         vec3.dot(vec3.normalize(reqAccel),t.upVec)
@@ -17,17 +25,36 @@ def getLiftCoeff(t,reqAccel):
     else:
         return angleReq
 
+# TODO : Temporary workout. Fix after missile guidance workout
 def getDragCoeff(t,LiftCoeff):
     """
-    get Drag Coefficient of target at given Lift Coefficient
-    ???
+    get Drag Coefficient of missile at given angle request
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        guideReqAccel (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        float: Drag Coefficient
     """
     #dragCx = t.data['dragCx']
     #K = t.data['CxK'] #Drag lift-induced drag
     CdK = 10*LiftCoeff*LiftCoeff# !temporary
     return 0.1+CdK
 
+# TODO : Temporary workout. Fix after missile guidance workout
 def genTargetMovement(t,frame,accel_wanted):
+    """
+    Generate movement of target, for given acceleration request
+
+    Args:
+        t (mObjects.TargetObject) : target object
+        frame (float) : time (frame)
+        accel_wanted (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        mObjects.TargetObject : target object at given frame
+    """
     gravity = data.getGravity(t.pVec.z)
     if vec3.norm(accel_wanted) > 7.5*gravity:
         t.aVec = 7.5*gravity*vec3.normalize(accel_wanted)
@@ -55,14 +82,13 @@ def genTargetMovement(t,frame,accel_wanted):
     LiftCoeff = getLiftCoeff(t,accel_wanted)
     DragCoeff = getDragCoeff(t,LiftCoeff)
 
-    forceList = [
-        t.fVec*thrust,
-        t.upVec*LiftCoeff*drag_lift_constant,
-        (-t.fVec)*DragCoeff*drag_lift_constant,
+    forceSum = \
+        t.fVec*thrust+\
+        t.upVec*LiftCoeff*drag_lift_constant+\
+        (-t.fVec)*DragCoeff*drag_lift_constant+\
         vec3(0,0,-1)*gravity*t.data['mass']
-    ]
-
-    accel_balance = sum(forceList)/t.data['mass']
+    
+    accel_balance = forceSum/t.data['mass']
 
     t.aVec += accel_balance
     t.pVec += t.vVec*data.dt + 0.5*t.aVec*data.dt*data.dt
@@ -72,12 +98,20 @@ def genTargetMovement(t,frame,accel_wanted):
     t.fVec = vec3.normalize(t.vVec)
     return t
 
-#===============================================
-
+#!===============================================
+# Entry Point?
+#!===============================================
+# TODO : Temporary workout. Fix after missile guidance workout
 def genTargetMovement1(t,frame):
     """
-    IN: TargetObject, Framenumber
-    OUT: TargetObject at given frame
+    define movement of target
+
+    Args:
+        t (mObjects.TargetObject) : target object
+        frame (float) : time (frame)
+
+    Returns:
+        mObjects.TargetObject : target object at given frame
     """
     ACCEL_MULTIPLIER = 10
     accel_wanted = vec3.normalize(t.fVec)

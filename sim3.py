@@ -3,6 +3,17 @@ import mObjects as mobj
 import data
 
 def init(plot,datapack):
+    """
+    initializing plot,
+    generating 2d data to plot
+
+    Args:
+        plot (matplotlib.pyplot.subplot) : matplotlib plot to be drawn
+        datapack ([missileData]) : [list of missile] data
+
+    Returns:
+        list: [list of k_i data per frame, matplotlib line plot]
+    """
     missileData = datapack[0]
     k_iData = [elm.intgK for elm in missileData]
     plot.set_xlim([0,data.TIMEMAX])
@@ -19,7 +30,14 @@ def init(plot,datapack):
     lineplot, = plot.plot(0,0,color='green')
     return [k_iData,lineplot]
 #-----------------------------------------------------------
-def update(frame,ax,simPlots):
+def update(frame,simPlots):
+    """
+    update of plot, per frame
+
+    Args:
+        frame (float) : frame(time)
+        simPlots (list of object data) : packed objects to be updated
+    """
     k_iData, lineplot = simPlots
     lineplot.set_data([x * data.dt for x in range(0, frame)],k_iData[:frame])
     

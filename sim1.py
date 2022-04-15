@@ -5,11 +5,22 @@ import data
 import numpy as np
 
 def init(plot,datapack):
+    """
+    initializing plot,
+    generating 3d data to plot
+
+    Args:
+        plot (matplotlib.pyplot.subplot) : matplotlib plot to be drawn
+        datapack ([targetData, missileData, flaresData]) : [list of target, list of missile, list of flare] data
+
+    Returns:
+        list: list of [list of [matplotlib plot,matplotlib text...]...]
+    """
     targetData,missileData,flaresData = datapack
 
     plot.set_xlim3d([0,7000])
-    plot.set_ylim3d([-200,50])
-    plot.set_zlim3d([2700,3000])
+    plot.set_ylim3d([-1000,1000])
+    plot.set_zlim3d([2500,3500])
 
     plot.set_xlabel('거리(m)')
     plot.set_ylabel('거리(m)')
@@ -50,6 +61,14 @@ def init(plot,datapack):
     return [targetObjects,missileObjects,flareObjects,[text_frame_now]]
 #-----------------------------------------------------------
 def resetColor(resetObject,objType):
+    """
+    resets color of mathplotlib plot for given object Type
+
+    sets color of matplotlib plot, for given object type
+    Args:
+        resetObject (matplotlib plot) : given plot
+        objType (string) : object type in string
+    """
     if objType == 'target': color = 'blue'
     elif objType == 'missile': color = 'red'
     elif objType == 'flare': color = 'purple'
@@ -57,6 +76,14 @@ def resetColor(resetObject,objType):
     resetObject.set_color(color)
 
 def genTextStr(obj):
+    """
+    generates string to be used by matplotlib text
+
+    Args:
+        obj (mObjects.SimObject) : SimObject (Flare/Missile/Target)
+    Returns:
+        string : text
+    """
     text = obj.data['name']
     if type(obj) == mobj.FlareObject:
         return text
@@ -72,7 +99,14 @@ def genTextStr(obj):
     #if type(obj) == mobj.TargetObject:
     return text
 
-def update(frame,ax,simPlots):
+def update(frame,simPlots):
+    """
+    update of plot, per frame
+
+    Args:
+        frame (float) : frame(time)
+        simPlots (list of object data) : packed objects to be updated
+    """
     targetObjects,missileObjects,flareObjects,otherObjects = simPlots
     otherObjects[0].set_text(str(frame)+'('+str(round(frame*data.dt,1))+'s)')
     #------------------------------------------

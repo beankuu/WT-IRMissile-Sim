@@ -31,8 +31,14 @@ CLMax = 2 * PI * CritAoA(rad)
 # Drag = Friction drag + Pressure drag + Compression drag + Lift induced drag
 def rotateTorqueForce(m,guideReqAccel):
     """
-    function to change upVec and fVec
-    
+    get rotation Torque for missile, to match requested Acceleration
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        guideReqAccel (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        mObjects.Vec3D: torque vector
     """
     if vec3.norm(guideReqAccel) == 0: return vec3(1,0,0), vec3(0,0,0)
     newFVec = vec3.normalize(guideReqAccel)
@@ -57,7 +63,14 @@ def rotateTorqueForce(m,guideReqAccel):
 # add thrust towards forward (vVec)
 def getThrust(m,time):
     """
-    get Thrust at given time
+    get Thrust of missile at given time
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        time (float) : current time in seconds
+
+    Returns:
+        float : scalar thrust force
     """
     if time <= m.data['timeFire']:
         return m.data['force']
@@ -65,9 +78,16 @@ def getThrust(m,time):
         return 0.0
 
 #TODO is it correct...?
-def getLift(m,guideReqAccel):
+def getLiftCoeff(m,guideReqAccel):
     """
     get Lift Coefficient of missile at given angle request
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        guideReqAccel (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        float: Lift Coefficient
     """
     angleReq = np.arccos(
        vec3.dot(vec3.normalize(guideReqAccel),m.upVec)
@@ -76,9 +96,16 @@ def getLift(m,guideReqAccel):
     return CLMax if angleReq >= CLMax else angleReq
 
 #TODO is it correct...?
-def getDrag(m,guideReqAccel):
+def getDragCoeff(m,guideReqAccel):
     """
-    get Drag Coefficient of missile at given Lift Coefficient
+    get Drag Coefficient of missile at given angle request
+
+    Args:
+        missile (mObjects.MissileObject) : missile object
+        guideReqAccel (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        float: Drag Coefficient
     """
     # Cd = Cd0 + CL^2 / PI*AR*e
     # AR = s^2 / A
@@ -95,17 +122,30 @@ def getDrag(m,guideReqAccel):
     CdK = K*CLMax*CLMax
     return dragCx+CdK
 
-# return in m/s
+#! ============================================================
+# Entry point
+#! ============================================================
 def getAccel(m,time,guideReqAccel):
+    """
+    calculate acceleration of missile, at given time
+
+    Args:
+        m (mObjects.MissileObject) : missile object
+        time (float) : time (s)
+        guideReqAccel (mObjects.Vec3D) : requested Acceleration Vector
+
+    Returns:
+        mObjects.Vec3D: real acceleration of missile, at given time
+    """
     #-------------------------------------
     # constant calculations
     airDensity = data.getAirDensity(m.pVec.z)
     velocity = vec3.norm(m.vVec)
-    areaNose = np.pi *np.power((m.data['caliber'])/2,2)
-    areaWing = m.data['caliber']*m.data['length']
-    totalArea = (areaNose+areaWing)*m.data['wingAreamult']
+    areaNose = np.pi *np.power(m.data['caliber']/2,2)
+    areaBody = m.data['caliber']*m.data['length']
+    totalArea = (areaNose+areaBody)*m.data['wingAreamult']
 
-    lift_drag_constant = airDensity * velocity * velocity * totalArea * 0.5
+    lift_drag_constant = airDensity * velocity * velocity * totalArea * 0.5 #*data.dt*data.dt
     #-------------------------------------
     # current time's mass calculation
     if time <= m.data['timeFire']:
@@ -140,18 +180,18 @@ def getAccel(m,time,guideReqAccel):
     #===================================
     #------------
     thrust = getThrust(m,time)
-    liftCoef = getLift(m,guideReqAccel)
-    dragCoef = getDrag(m,guideReqAccel)
+    liftCoef = getLiftCoeff(m,guideReqAccel)
+    dragCoef = getDragCoeff(m,guideReqAccel)
     gravity = data.getGravity(m.pVec.z)
     #===================================
     # Forces
-    forces = [
-        thrust*m.fVec,
-        liftCoef*lift_drag_constant*m.upVec,
-        dragCoef*lift_drag_constant*-m.fVec,
+    forces = \
+        thrust*m.fVec+\
+        liftCoef*lift_drag_constant*m.upVec+\
+        dragCoef*lift_drag_constant*-m.fVec+\
         gravity*vec3(0,0,-1)*massNow
-    ]
-    sumAccel = sum(forces)/massNow
+    
+    sumAccel = forces/massNow
 
     #------------
     #return m.fVec*Thrust/massNow+autoReqAccel
