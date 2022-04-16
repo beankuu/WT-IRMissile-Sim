@@ -1,10 +1,113 @@
 # bunch of hardcoded datas + helper functions
+
+#!===================================================
+# Global constants
 INFINITE = 2147483647
 
 TIMEMAX = 12
 FPS = 30
 MaxFrame = TIMEMAX*FPS
 dt = 1/FPS
+#--------------------------------------------
+autopilot_ailerons_rateDeadZone= 0.0
+autopilot_ailerons_angleDeadZone= 0.0
+autopilot_ailerons_velDeadZone= 0.0
+autopilot_ailerons_posDeadZone= 0.1
+autopilot_ailerons_posHoldVelTreshold= 2.0
+autopilot_ailerons_posHoldTimeOut= 3.0
+autopilot_ailerons_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
+autopilot_ailerons_angleLim= 190.0
+autopilot_ailerons_angleLimFullRateMult= 0.8
+autopilot_ailerons_autoRateDeadZone= 0.0
+autopilot_ailerons_maxAutoRateMult= 0.85
+autopilot_ailerons_limitHalfWingAoa= False
+autopilot_ailerons_maxAoaMult= 0.8
+autopilot_ailerons_rollTimeMultBase= 4.0
+
+autopilot_elevator_rateDeadZone= 0.0
+autopilot_elevator_angleDeadZone= 0.0
+autopilot_elevator_velDeadZone= 0.0
+autopilot_elevator_posDeadZone= 0.1
+autopilot_elevator_posHoldVelTreshold= 2.0
+autopilot_elevator_posHoldTimeOut= 3.0
+autopilot_elevator_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
+autopilot_elevator_angleLim= 190.0
+autopilot_elevator_angleLimFullRateMult= 0.8
+autopilot_elevator_aoaFactorDeadZone= 0.0
+autopilot_elevator_loadFactorFilterViscosity= 0.05
+autopilot_elevator_loadFactorDeadZone= 0.0
+autopilot_elevator_maxLoadFactorMult= 0.85
+autopilot_elevator_targetMaxAoaFactorMult= 1.0
+autopilot_elevator_additionalAoaMaxFactorMult= 1.0
+autopilot_elevator_maxAoaFactorMult= 0.95
+#autopilot_elevator_limitAoaByLoadFactor= True
+#autopilot_elevator_limitStabAoa= False
+autopilot_elevator_loadFactorTimeMultBase= 5.0
+autopilot_elevator_aoaTimeMultBase= 0.2
+
+autopilot_yaw_rateDeadZone= 0.0
+autopilot_yaw_headingHoldRateTreshold= 2.0
+autopilot_yaw_headingHoldTimeOut= 0.5
+
+autopilot_throttle_climbDeadZone= 0.0
+autopilot_throttle_altDeadZone= 0.1
+autopilot_throttle_altHoldClimbTreshold= 0.5
+autopilot_throttle_altHoldTimeOut= 0.5
+autopilot_throttle_climbMinLimByHorSpeed= [40.0,-3.0,80.0,-15.0]
+autopilot_throttle_climbMinLimByRAltitude= [15.0,-3.0,50.0,-15.0]
+
+autopilot_aim_axesTreshold= 0.05
+autopilot_aim_rollLim= 50.0
+autopilot_aim_rollLimByRaltitude= [15.0,20.0,50.0,190.0]
+autopilot_aim_pitchLim= 20.0
+autopilot_aim_pitchLimByRaltitude= [15.0,20.0,100.0,190.0]
+autopilot_aim_overridenRollLim= 30.0
+autopilot_aim_angleLimFullRateMult= 0.8
+
+#----------
+
+shaftDegradationSpeed1= 0.0005
+shaftDegradationSpeed2= 0.0035
+shaftDegradationSpeed3= 0.015
+
+wingWaveMassRel= 0.25
+wingspanToWingResonanceSpeed= 295.0
+rollingWingWaveRange= [0.1,2.0]
+#wingSpringDampJoint= True
+wingSpringDampJointMult= [0.5,0.005]
+wingSpringDampJointArmRel= 1.0
+
+#----------
+
+horsePowersToInfraRedBrightness: 0.42
+thrustKgsToInfraRedBrightness = 1.0
+afterburnerThrustKgsToInfraRedBrightness = 4.5
+EngineIRMultFront = 0.0006
+EngineIRMultSide  = 0.06
+EngineIRMultRear = 1.0
+
+"""
+AFIRMult = 20
+AFIRTempMach = 0.8
+AFIRTemp2BrightPwr = 10.0
+AFIRTemp2BrightMult0 = [0, 1]
+AFIRTemp2BrightMult1 = [5000, 2.4]
+"""
+"""
+## snow
+w_snow = -250
+## Clear state
+w_clear = -150
+## cloudy
+w_cloudy = 0
+## Rain
+w_rain = 400
+## Storm
+w_storm = 600
+
+#envAddWhiteTemp = w_cloudy
+"""
+
 
 #!===================================================
 # missile0 : AIM-9B
@@ -151,33 +254,7 @@ flare1 = {
     'force' : 0.1,
     'startSpeed' : 70.0, 'endSpeed' : 0.0
 }
-#!===================================================
-thrustKgsToInfraRedBrightness = 1.0
-afterburnerThrustKgsToInfraRedBrightness = 4.5
-EngineIRMultFront = 0.0006
-EngineIRMultSide  = 0.06
-EngineIRMultRear = 1.0
-"""
-AFIRMult = 20
-AFIRTempMach = 0.8
-AFIRTemp2BrightPwr = 10.0
-AFIRTemp2BrightMult0 = [0, 1]
-AFIRTemp2BrightMult1 = [5000, 2.4]
-"""
-"""
-## snow
-w_snow = -250
-## Clear state
-w_clear = -150
-## cloudy
-w_cloudy = 0
-## Rain
-w_rain = 400
-## Storm
-w_storm = 600
 
-#envAddWhiteTemp = w_cloudy
-"""
 #!===============================================================
 # other Datas and calculations
 #----------------------------------------------------------------
