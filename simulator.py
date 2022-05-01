@@ -15,13 +15,6 @@ from mObjects import Vec3D as vec3
 import sim1,sim2,sim3,sim4, sim5
 
 #===============================================
-#-----------------------------------------------
-
-target =  mobj.TargetObject(data=data.target1,    pVec = vec3(3000,0,3000),  vVec=vec3(280, 0, 0),  isAfterburnerOnAt=[(0.0,6.0)] )
-missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=vec3(3000,0,3000) )
-
-flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
-
 def periodicFlare(start,flareSeries,flaresSeriesPeriod,flarePeriod):
     """
     generates list of flare period
@@ -40,16 +33,33 @@ def periodicFlare(start,flareSeries,flaresSeriesPeriod,flarePeriod):
         for j in range(flareSeries):
             periodicResult.append(start+i*flaresSeriesPeriod+j*flarePeriod)
     return periodicResult
+#-----------------------------------------------
 
-#flareTimes = []
-#flareTimes = [3.1,3.3,3.5, 6.1,6.3,6.5]
-flareTimes = periodicFlare(1.0, 3, 3.0, 0.1)
+targetLocation = [ 
+    vec3(2000,300,3000)
+]
+
+target =  mobj.TargetObject(data=data.target0,    pVec = targetLocation[0],  vVec=vec3(250, 0, 0),  isAfterburnerOnAt=[(0.0,6.0)] )
+#missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
+
+missiles = [
+    #mobj.MissileObject(data=data.missile0,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    #mobj.MissileObject(data=data.missile1,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    #mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile3,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    #mobj.MissileObject(data=data.missile4,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
+]
+
+flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
+flareTimes = periodicFlare(1.0, 2, 2.0, 0.1)
+flareTimes = []
 print('flare @ ',flareTimes)
 
 flares = [ mobj.FlareObject(data=flareTypeData) for i in range(len(flareTimes)) ]
 
 ## list of [list of [SimObjects per frame]]...
-targetData, missileData, flaresData = pathGen.genPaths(target,missile,[flares,flareTimes])
+#targetData, missileData, flaresData = pathGen.genPaths(target,missile,[flares,flareTimes])
+targetData, missilesData, flaresData = pathGen.genPaths(target,missiles,[flares,flareTimes])
 
 #==================================================================
 
@@ -64,11 +74,11 @@ asim3 = fig.add_subplot(grid[2,3])
 asim4 = fig.add_subplot(grid[2,4])
 asim5 = fig.add_subplot(grid[0,4]) # seeker zoomin
 
-sim1Plots = sim1.init(asim1, [targetData,missileData,flaresData])
-sim2Plots = sim2.init(asim2, [targetData,missileData,flaresData])
-sim3Plots = sim3.init(asim3, [missileData])
-sim4Plots = sim4.init(asim4, [targetData, missileData])
-sim5Plots = sim5.init(asim5, [targetData,missileData,flaresData])
+sim1Plots = sim1.init(asim1, [targetData,missilesData,flaresData])
+sim2Plots = sim2.init(asim2, [targetData,missilesData[0],flaresData])
+sim3Plots = sim3.init(asim3, [missilesData[0]])
+sim4Plots = sim4.init(asim4, [targetData, missilesData[0]])
+sim5Plots = sim5.init(asim5, [targetData,missilesData[0],flaresData])
 
 #! update function
 def update(frame):

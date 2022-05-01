@@ -9,33 +9,33 @@ FPS = 30
 MaxFrame = TIMEMAX*FPS
 dt = 1/FPS
 #--------------------------------------------
-autopilot_ailerons_rateDeadZone= 0.0
-autopilot_ailerons_angleDeadZone= 0.0
-autopilot_ailerons_velDeadZone= 0.0
-autopilot_ailerons_posDeadZone= 0.1
-autopilot_ailerons_posHoldVelTreshold= 2.0
-autopilot_ailerons_posHoldTimeOut= 3.0
-autopilot_ailerons_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
-autopilot_ailerons_angleLim= 190.0
-autopilot_ailerons_angleLimFullRateMult= 0.8
-autopilot_ailerons_autoRateDeadZone= 0.0
+#autopilot_ailerons_rateDeadZone= 0.0
+#autopilot_ailerons_angleDeadZone= 0.0
+#autopilot_ailerons_velDeadZone= 0.0
+#autopilot_ailerons_posDeadZone= 0.1
+#autopilot_ailerons_posHoldVelTreshold= 2.0
+#autopilot_ailerons_posHoldTimeOut= 3.0
+#autopilot_ailerons_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
+#autopilot_ailerons_angleLim= 190.0
+#autopilot_ailerons_angleLimFullRateMult= 0.8
+#autopilot_ailerons_autoRateDeadZone= 0.0
 autopilot_ailerons_maxAutoRateMult= 0.85
-autopilot_ailerons_limitHalfWingAoa= False
+#autopilot_ailerons_limitHalfWingAoa= False
 autopilot_ailerons_maxAoaMult= 0.8
 autopilot_ailerons_rollTimeMultBase= 4.0
 
-autopilot_elevator_rateDeadZone= 0.0
-autopilot_elevator_angleDeadZone= 0.0
-autopilot_elevator_velDeadZone= 0.0
-autopilot_elevator_posDeadZone= 0.1
-autopilot_elevator_posHoldVelTreshold= 2.0
-autopilot_elevator_posHoldTimeOut= 3.0
-autopilot_elevator_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
-autopilot_elevator_angleLim= 190.0
-autopilot_elevator_angleLimFullRateMult= 0.8
-autopilot_elevator_aoaFactorDeadZone= 0.0
-autopilot_elevator_loadFactorFilterViscosity= 0.05
-autopilot_elevator_loadFactorDeadZone= 0.0
+#autopilot_elevator_rateDeadZone= 0.0
+#autopilot_elevator_angleDeadZone= 0.0
+#autopilot_elevator_velDeadZone= 0.0
+#autopilot_elevator_posDeadZone= 0.1
+#autopilot_elevator_posHoldVelTreshold= 2.0
+#autopilot_elevator_posHoldTimeOut= 3.0
+#autopilot_elevator_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
+#autopilot_elevator_angleLim= 190.0
+#autopilot_elevator_angleLimFullRateMult= 0.8
+#autopilot_elevator_aoaFactorDeadZone= 0.0
+#autopilot_elevator_loadFactorFilterViscosity= 0.05
+#autopilot_elevator_loadFactorDeadZone= 0.0
 autopilot_elevator_maxLoadFactorMult= 0.85
 autopilot_elevator_targetMaxAoaFactorMult= 1.0
 autopilot_elevator_additionalAoaMaxFactorMult= 1.0
@@ -45,34 +45,34 @@ autopilot_elevator_maxAoaFactorMult= 0.95
 autopilot_elevator_loadFactorTimeMultBase= 5.0
 autopilot_elevator_aoaTimeMultBase= 0.2
 
-autopilot_yaw_rateDeadZone= 0.0
-autopilot_yaw_headingHoldRateTreshold= 2.0
-autopilot_yaw_headingHoldTimeOut= 0.5
+#autopilot_yaw_rateDeadZone= 0.0
+#autopilot_yaw_headingHoldRateTreshold= 2.0
+#autopilot_yaw_headingHoldTimeOut= 0.5
 
-autopilot_throttle_climbDeadZone= 0.0
-autopilot_throttle_altDeadZone= 0.1
-autopilot_throttle_altHoldClimbTreshold= 0.5
-autopilot_throttle_altHoldTimeOut= 0.5
-autopilot_throttle_climbMinLimByHorSpeed= [40.0,-3.0,80.0,-15.0]
-autopilot_throttle_climbMinLimByRAltitude= [15.0,-3.0,50.0,-15.0]
+#autopilot_throttle_climbDeadZone= 0.0
+#autopilot_throttle_altDeadZone= 0.1
+#autopilot_throttle_altHoldClimbTreshold= 0.5
+#autopilot_throttle_altHoldTimeOut= 0.5
+#autopilot_throttle_climbMinLimByHorSpeed= [40.0,-3.0,80.0,-15.0]
+#autopilot_throttle_climbMinLimByRAltitude= [15.0,-3.0,50.0,-15.0]
 
-autopilot_aim_axesTreshold= 0.05
-autopilot_aim_rollLim= 50.0
-autopilot_aim_rollLimByRaltitude= [15.0,20.0,50.0,190.0]
-autopilot_aim_pitchLim= 20.0
-autopilot_aim_pitchLimByRaltitude= [15.0,20.0,100.0,190.0]
-autopilot_aim_overridenRollLim= 30.0
-autopilot_aim_angleLimFullRateMult= 0.8
+#autopilot_aim_axesTreshold= 0.05
+#autopilot_aim_rollLim= 50.0
+#autopilot_aim_rollLimByRaltitude= [15.0,20.0,50.0,190.0]
+#autopilot_aim_pitchLim= 20.0
+#autopilot_aim_pitchLimByRaltitude= [15.0,20.0,100.0,190.0]
+#autopilot_aim_overridenRollLim= 30.0
+#autopilot_aim_angleLimFullRateMult= 0.8
 
 #----------
 
-shaftDegradationSpeed1= 0.0005
-shaftDegradationSpeed2= 0.0035
-shaftDegradationSpeed3= 0.015
+#shaftDegradationSpeed1= 0.0005
+#shaftDegradationSpeed2= 0.0035
+#shaftDegradationSpeed3= 0.015
 
-wingWaveMassRel= 0.25
-wingspanToWingResonanceSpeed= 295.0
-rollingWingWaveRange= [0.1,2.0]
+#wingWaveMassRel= 0.25
+#wingspanToWingResonanceSpeed= 295.0
+#rollingWingWaveRange= [0.1,2.0]
 #wingSpringDampJoint= True
 wingSpringDampJointMult= [0.5,0.005]
 wingSpringDampJointArmRel= 1.0
@@ -87,6 +87,7 @@ EngineIRMultSide  = 0.06
 EngineIRMultRear = 1.0
 
 """
+#----------
 AFIRMult = 20
 AFIRTempMach = 0.8
 AFIRTemp2BrightPwr = 10.0
@@ -94,6 +95,7 @@ AFIRTemp2BrightMult0 = [0, 1]
 AFIRTemp2BrightMult1 = [5000, 2.4]
 """
 """
+#----------
 ## snow
 w_snow = -250
 ## Clear state
@@ -155,9 +157,9 @@ missile3 = {
     'name' : 'PL-5B',
     'caliber' : 0.127,    'mass' : 84.0,   'massEnd' : 59.7,    'dragCx' : 0.018,    'length' : 2.1,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
     'CxK' : 3.3,    'finsAoA' : 0.18,    'force' : 36000,    'timeFire' : 2.0,     'endSpeed' : 1000.0,    'timeLife' : 40.0,    
-    'machMax' : 2.2,    'loadFactorMax' : 20.0,    'rangeBand0' : 5500.0,
+    'machMax' : 2.2,    'loadFactorMax' : 30.0,    'rangeBand0' : 5500.0,
     'g_fov' : 2.4,    'g_lockAngleMax' : 25.0,    'g_angleMax' : 40.0,    'g_rateMax' : 20.0,
-    'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 20.0,    'g_ga_baseIndSpeed' : 1800.0,
+    'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 30.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.002,
     'tb0_altitude' : 0.0, 'tb0_fighterMach' : [0,0], 'tb0_targetMach' : [0,0], 'tb0_rangeMin' : [0,0,0,0], 'tb0_rangeMax' : [0,0,0,0], 'tb0_altdiff' : [0,0],
     'tb1_altitude' : 0.0, 'tb1_fighterMach' : [0,0], 'tb1_targetMach' : [0,0], 'tb1_rangeMin' : [0,0,0,0], 'tb1_rangeMax' : [0,0,0,0], 'tb1_altdiff' : [0,0],
@@ -182,7 +184,7 @@ target0 = {
     'name' : 'Dummy Target',
     'mass' : 1000, #kg
     'maxspeed' : 1, #m/s (1332kmh)
-    'Thrust' : 10000,
+    'Thrust' : 9.80665*10000,
     'AoA' : 0.25, #90 deg
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.5,
@@ -196,7 +198,7 @@ target1 = {
     'maxspeed' : 350, #m/s (1260kmh)
     'AoA' : 0.138, #50 deg,
     'wingAreaSum' : 8.2*6+4.0+5.2+1.8+5.0+1.5+0.35*2,
-    'Thrust' : 2600,
+    'Thrust' : 9.80665*2600,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.4,
     'enginecount' : 2,
@@ -209,7 +211,7 @@ target2 = {
     'maxspeed' : 360, #m/s (1296kmh)
     'AoA' : 0.25, #90 deg
     'wingAreaSum' : (4+7+6+4+7+6+0.2)*7.8,
-    'Thrust' : 6057.0601,
+    'Thrust' : 9.80665*6057.0601,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.32,
     'enginecount' : 1,
@@ -223,7 +225,7 @@ target3 = {
     'stallSpeed' : 49, #m/s (176.4kmh)
     'AoA' : 0.138, #50 deg,
     'wingAreaSum' : (7.8*6+2.05)*17.5,
-    'Thrust' : 1981.96,
+    'Thrust' : 9.80665*1981.96,
     'AfterburnerBoost' : 1.0,
     'ThrustMult' : 1.0,
     'enginecount' : 2,

@@ -53,7 +53,11 @@ def init(plot,datapack):
     for i in range(data.MaxFrame):
         m = missileData[i]
         t = targetData[i]
-        rightVec = vec3.cross(m.upVec,m.fVec)
+        
+        fVec = m.fVec
+        rightVec = vec3(0,1,0) if fVec == vec3(0,0,1) else vec3.rodrigues(vec3.cross(fVec,vec3(0,0,1)),fVec,m.bank)
+        upVec = vec3.cross(fVec,rightVec)
+
         diffVec = t.pVec - m.pVec
         calcRange = vec3.norm(diffVec)
         diffNormalized = vec3.normalize(diffVec)
@@ -61,8 +65,8 @@ def init(plot,datapack):
 
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
             newX = 90-np.rad2deg(np.arccos(vec3.dot(rightVec,diffNormalized))) #-90~90
-            newY = 90-np.rad2deg(np.arccos(vec3.dot(m.upVec,diffNormalized)))-90  #-90~90
-            newTargetPath.append([-newX,newY])
+            newY = 90-np.rad2deg(np.arccos(vec3.dot(upVec,diffNormalized)))-90  #-90~90
+            newTargetPath.append([newX,-newY])
         else:
             if i == 0:
                 newTargetPath.append([0,0])
@@ -79,8 +83,8 @@ def init(plot,datapack):
 
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
                 newX = 90-np.rad2deg(np.arccos(vec3.dot(rightVec,diffNormalized))) #-90~90
-                newY = 90-np.rad2deg(np.arccos(vec3.dot(m.upVec,diffNormalized))) #-90~90
-                newFlaresPath[fi].append([-newX,newY])
+                newY = 90-np.rad2deg(np.arccos(vec3.dot(upVec,diffNormalized))) #-90~90
+                newFlaresPath[fi].append([newX,-newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
     #==================================================================
@@ -90,14 +94,18 @@ def init(plot,datapack):
         m = missileData[i]
         t = targetData[i]
         circleData = []
-        rightVec = vec3.cross(m.upVec,m.fVec)
+        
+        fVec = m.fVec
+        rightVec = vec3(0,1,0) if fVec == vec3(0,0,1) else vec3.rodrigues(vec3.cross(fVec,vec3(0,0,1)),fVec,m.bank)
+        upVec = vec3.cross(fVec,rightVec)
+        
         diffVec = m.sVec
         diffNormalized = diffVec#.normalize()
         x = 90-np.rad2deg(np.arccos(vec3.dot(rightVec,diffNormalized))) #-90~90
-        y = 90-np.rad2deg(np.arccos(vec3.dot(m.upVec,diffNormalized)))  #-90~90
+        y = 90-np.rad2deg(np.arccos(vec3.dot(upVec,diffNormalized)))  #-90~90
         angle = 0
         while angle < 360:
-            circleData.append((-x-maxFOV*np.cos(np.radians(angle)),y+maxFOV*np.sin(np.radians(angle))))
+            circleData.append((x+maxFOV*np.cos(np.radians(angle)),-y-maxFOV*np.sin(np.radians(angle))))
             angle += 1
         lockCircleData.append([circleData])
     #-----------------------------------------------------------

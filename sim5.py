@@ -50,7 +50,12 @@ def init(plot,datapack):
     for i in range(data.MaxFrame):
         m = missileData[i]
         t = targetData[i]
-        newRightVec = vec3.cross(m.upVec,m.sVec)
+        
+        fVec = m.fVec
+        rightVec = vec3(0,1,0) if fVec == vec3(0,0,1) else vec3.rodrigues(vec3.cross(fVec,vec3(0,0,1)),fVec,m.bank)
+        upVec = vec3.cross(fVec,rightVec)
+
+        newRightVec = vec3.cross(upVec,m.sVec)
         newUpVec = vec3.cross(m.sVec,newRightVec)
 
         diffVec = t.pVec - m.pVec
@@ -63,7 +68,7 @@ def init(plot,datapack):
         if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
             newX = 90-np.rad2deg(np.arccos(vec3.dot(newRightVec,diffNormalized))) #-90~90
             newY = 90-np.rad2deg(np.arccos(vec3.dot(newUpVec,diffNormalized)))  #-90~90
-            newTargetPath.append([-newX,newY])
+            newTargetPath.append([newX,-newY])
         else:
             if i == 0:
                 newTargetPath.append([0,0])
@@ -83,7 +88,7 @@ def init(plot,datapack):
             if calcAngle <= 1.2*maxAngle and calcRange <= maxRange:
                 newX = 90-np.rad2deg(np.arccos(vec3.dot(newRightVec,diffNormalized))) #-90~90
                 newY = 90-np.rad2deg(np.arccos(vec3.dot(newUpVec,diffNormalized))) #-90~90
-                newFlaresPath[fi].append([-newX,newY])
+                newFlaresPath[fi].append([newX,-newY])
             else:
                 newFlaresPath[fi].append([0,data.INFINITE])
     #==================================================================

@@ -36,7 +36,7 @@ class Vec3D:
         return -1 * self
     # * scalar only
     def __mul__(self, other):
-        if type(other) not in {int, float, np.float64}:
+        if type(other) not in {int, float, np.float64, np.int32}:
             raise TypeError('Vec3D mul does not support'+str(type(other))+'.\nonly supports scalar(int or float) operations.')
         return Vec3D(self.x * other, self.y * other, self.z * other)
     def __imul__(self, other):
@@ -45,7 +45,7 @@ class Vec3D:
         return self * other
     # / scalar only, no floordiv!
     def __truediv__(self, other):
-        if type(other) not in {int, float, np.float64}:
+        if type(other) not in {int, float, np.float64, np.int32}:
             raise TypeError('Vec3D div does not support'+str(type(other))+'.\nonly supports scalar(int or float) operations.')
         # some big number
         divider = INFINITE if other == 0 else other
@@ -263,38 +263,58 @@ class Vec3D:
         """
         return Vec3D.spherical(r,np.radians(theta),np.radians(rho))
 
+    @staticmethod
+    def rodrigues(v1,v2,theta):
+        """
+        Rodrigues' rotation formula
+
+        https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+        
+        Args:
+            v1 (mObjects.Vec3D) : vector to be modified
+            v1 (mObjects.Vec3D) : vector to be rotated around
+            theta (float) : rotation angle in rads
+        
+        Returns:
+            mObjects.Vec3D : rotated vector
+        """
+        kvec = Vec3D.normalize(Vec3D.cross(v1,v2))
+        return v1*np.cos(theta) + Vec3D.cross(kvec,v1)*np.sin(theta) + kvec*Vec3D.dot(kvec,v1)*(1-np.cos(theta))
+
 # root object
 class SimObject:
-    # position(pVec), velocity(vVec), acceleration(aVec), frontwards(fVec), upwards(upVec), data dictionary(dataDict)
-    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None):
+    # position(pVec), velocity(vVec), acceleration(aVec), frontwards(fVec), data dictionary(dataDict)
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, data=None):
         self.pVec = Vec3D() if pVec == None else pVec
         self.vVec = Vec3D(1,0,0) if vVec == None else vVec
         self.aVec = Vec3D() if aVec == None else aVec
         self.fVec = Vec3D(1,0,0) if fVec == None else Vec3D.normalize(fVec)
-        self.upVec = Vec3D(0,0,1) if upVec == None else Vec3D.normalize(upVec)
+        self.upVec = Vec3D(0,0,1)
         self.data = {} if data == None else data
 
-        self.aileron = 0 #0, %
-        self.elevator = 0 #0, % 
-        self.rudder = 0 #-7, % 
-        self.Ny = 0 #1 #GForce
-        self.Vy = 0 #0, m/s #Upwards Velocity
+        self.bank = 0 # Use as rightVec
+
+        #self.aileron = 0 #0, %
+        #self.elevator = 0 #0, % 
+        #self.rudder = 0 #-7, % 
+        #self.Ny = 0 #1 #GForce
+        #self.Vy = 0 #0, m/s #Upwards Velocity
         self.Wx = 0 #0, deg/s #Rolling
         self.AoA = 0 #3.9, deg
         self.AoS = 0 #72.5, deg
         self.IAS = 0 #0, km/h
         
         #----------------
-        self.speed = 0 #-0.0281
-        self.bank = 0 # 0.056
+        #self.speed = 0 #-0.0281
+        #self.bank = 0 # 0.056
         self.turn = 0 # 0
         #self.head_temperature = 0 #235.59
-        self.trimmer = 0 #0
+        #self.trimmer = 0 #0
 
 # (1x SimObject), 1x fireFlareAt[float,...], 1x isAfterburnerOnAt[[float,float],...]
 class TargetObject(SimObject):
-    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, fireFlareAt=None, isAfterburnerOnAt=None):
-        super().__init__(pVec,vVec,aVec,fVec,upVec,data)
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, data=None, fireFlareAt=None, isAfterburnerOnAt=None):
+        super().__init__(pVec,vVec,aVec,fVec,data)
         self.fireFlareAt = [] if fireFlareAt == None else fireFlareAt
         self.isAfterburnerOnAt = [] if isAfterburnerOnAt == None else isAfterburnerOnAt
         self.isAfterburnerOn = False
@@ -302,17 +322,17 @@ class TargetObject(SimObject):
 
 # same as SimObject?
 class FlareObject(SimObject):
-    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, upVec=None, data=None, firedAt=None):
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec = None, data=None, firedAt=None):
         newpVec = Vec3D(INFINITE,INFINITE,INFINITE) if pVec == None else pVec
-        super().__init__(newpVec,vVec,aVec,fVec,upVec,data)
+        super().__init__(newpVec,vVec,aVec,fVec,data)
         self.isFired = False
         self.isOff = False
 
 # (1x SimObject), 1x seekerVec, booleans...
 class MissileObject(SimObject):
     # ...seeker direction(sVec), acceleration(aVec)
-    def __init__(self, pVec=None, vVec=None, aVec=None, fVec=None, upVec=None, sVec=None, data=None):
-        super().__init__(pVec,vVec,aVec,fVec,upVec,data)
+    def __init__(self, pVec=None, vVec=None, aVec=None, fVec=None, sVec=None, data=None):
+        super().__init__(pVec,vVec,aVec,fVec,data)
         self.sVec = Vec3D() if sVec == None else Vec3D.normalize(sVec-pVec)
         self.isHit = False
         self.isLocked = True

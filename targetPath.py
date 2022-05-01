@@ -1,11 +1,12 @@
 # from pathGen...
+from functools import reduce
 import numpy as np
 import data
 import mObjects as mobj
 from mObjects import Vec3D as vec3
 
 # TODO : Temporary workout. Fix after missile guidance workout
-def getLiftCoeff(t,reqAccel):
+def getLiftCoeff(t,AOA):
     """
     get Lift Coefficient of missile at given angle request
 
@@ -16,17 +17,14 @@ def getLiftCoeff(t,reqAccel):
     Returns:
         float: Lift Coefficient
     """
-    angleReq = np.arccos(
-        vec3.dot(vec3.normalize(reqAccel),t.upVec)
-    )/(2*np.pi)
-    AoAMax = t.data['AoA']
-    if angleReq >= AoAMax:
-        return AoAMax
-    else:
-        return angleReq
+    ## Thin airfoil theory? broken at high angle
+    #CL = AOA*2*np.pi
+    ## near-value of NACA-0015 airfoil wind tunnel graph?
+    CL = np.sin(2*AOA)
+    return CL
 
 # TODO : Temporary workout. Fix after missile guidance workout
-def getDragCoeff(t,LiftCoeff):
+def getDragCoeff(t,CL):
     """
     get Drag Coefficient of missile at given angle request
 
@@ -39,11 +37,11 @@ def getDragCoeff(t,LiftCoeff):
     """
     #dragCx = t.data['dragCx']
     #K = t.data['CxK'] #Drag lift-induced drag
-    CdK = 10*LiftCoeff*LiftCoeff# !temporary
-    return 0.1+CdK
+    CdK = 0.3*CL*CL# !temporary
+    return 1+CdK
 
 # TODO : Temporary workout. Fix after missile guidance workout
-def genTargetMovement(t,frame,accel_wanted):
+def genTargetAcceleration(t,frame,accelRequest):
     """
     Generate movement of target, for given acceleration request
 
@@ -56,15 +54,17 @@ def genTargetMovement(t,frame,accel_wanted):
         mObjects.TargetObject : target object at given frame
     """
     gravity = data.getGravity(t.pVec.z)
-    if vec3.norm(accel_wanted) > 7.5*gravity:
-        t.aVec = 7.5*gravity*vec3.normalize(accel_wanted)
+    if vec3.norm(accelRequest) > 7.5*gravity:
+        t.aVec = 7.5*gravity*vec3.normalize(accelRequest)
     else:
-        t.aVec = accel_wanted
+        t.aVec = accelRequest
     
     airDensity = data.getAirDensity(t.pVec.z)
     velocity = vec3.norm(t.vVec)
-    wingArea = t.data['wingAreaSum']# !temporary
-    drag_lift_constant = airDensity * velocity * velocity * wingArea * 0.5
+    areaWing = t.data['wingAreaSum']# !temporary
+    areaNose = 2*2*np.pi
+    wingSpoilerArea = 1
+    drag_lift_constant = airDensity * velocity * velocity * 0.5
     #ThrustMult
     #AfterburnerBoost
     timenow = frame*data.dt
@@ -74,29 +74,47 @@ def genTargetMovement(t,frame,accel_wanted):
             t.isAfterburnerOn = True
         if timenow > closestPair[1]:
             t.isAfterburnerOn = False
-
+    
     if t.isAfterburnerOn: 
         thrust = t.data['AfterburnerBoost']*t.data['ThrustMult']* t.data['Thrust']*t.data['enginecount']
     else:
         thrust = t.data['Thrust']*t.data['enginecount'] #Thrust # !temporary
-    LiftCoeff = getLiftCoeff(t,accel_wanted)
-    DragCoeff = getDragCoeff(t,LiftCoeff)
-
-    forceSum = \
-        t.fVec*thrust+\
-        t.upVec*LiftCoeff*drag_lift_constant+\
-        (-t.fVec)*DragCoeff*drag_lift_constant+\
-        vec3(0,0,-1)*gravity*t.data['mass']
     
-    accel_balance = forceSum/t.data['mass']
+    #-------------
+    fVec = t.fVec
+    rVec = vec3(0,1,0) if fVec == vec3(0,0,-1) else vec3.cross(fVec,vec3(0,0,-1))
+    upVec = vec3.cross(fVec,rVec)
 
-    t.aVec += accel_balance
-    t.pVec += t.vVec*data.dt + 0.5*t.aVec*data.dt*data.dt
-    t.vVec += t.aVec*data.dt #dt == 1 frame
-    if vec3.norm(t.vVec) > t.data['maxspeed']:
-        t.vVec = t.data['maxspeed']*vec3.normalize(t.vVec)
-    t.fVec = vec3.normalize(t.vVec)
-    return t
+    accelRequest += fVec-vec3.normalize(t.vVec)
+    t.fVec = vec3.normalize(fVec + accelRequest*0.5*data.dt*data.dt)
+
+
+    fvAngle = np.arccos(vec3.dot(fVec,vec3.normalize(t.vVec)))
+
+    liftCoef = getLiftCoeff(t,fvAngle)
+    dragCoef = getDragCoeff(t,liftCoef)
+
+    dragArea = areaNose
+    liftArea = areaNose
+
+    liftArea += (areaWing)*np.sin(fvAngle)
+    dragArea += (areaWing)*np.sin(fvAngle)
+
+    
+    mass = t.data['mass']
+
+    forces = [
+        fVec*thrust,
+        liftCoef*drag_lift_constant*liftArea*upVec,
+        dragCoef*drag_lift_constant*dragArea*(-fVec),
+        vec3(0,0,-1)*gravity*mass,
+        dragCoef*drag_lift_constant*wingSpoilerArea*vec3.normalize(accelRequest)
+    ]
+    #print(fvAngle,forces)
+
+    sumAccel = reduce((lambda x,y:x+y), forces)/mass
+
+    return sumAccel
 
 #!===============================================
 # Entry Point?
@@ -113,38 +131,21 @@ def genTargetMovement1(t,frame):
     Returns:
         mObjects.TargetObject : target object at given frame
     """
-    ACCEL_MULTIPLIER = 10
     accel_wanted = vec3.normalize(t.fVec)
+    gravity = data.getGravity(t.pVec.z)
 
     timenow = frame*data.dt
     if timenow < 0.5:
-        accel_wanted = 7*ACCEL_MULTIPLIER*accel_wanted
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(-20),'z')
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(5),'x')
-        t.upVec = vec3.rotate(t.upVec,np.radians(5),'x')
+        accel_wanted = 2*gravity*vec3.normalize(vec3(0,0,-0.1))
     elif timenow < 3.0:
-        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(25),'z')
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(-4),'x')
-        t.upVec = vec3.rotate(t.upVec,np.radians(-4),'x')
+        accel_wanted = 5*gravity*vec3.normalize(vec3(0,1,-0.01))
     elif timenow < 5.0:
-        accel_wanted = 6*ACCEL_MULTIPLIER*accel_wanted
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(80),'z')
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(120),'x')
-        t.upVec = vec3.rotate(t.upVec,np.radians(120),'x')
+        accel_wanted = 2*gravity*vec3.normalize(vec3(0,2,-1))
     elif timenow < 7.0:
-        accel_wanted = 7*ACCEL_MULTIPLIER*accel_wanted
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(-40),'z')
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(10),'x')
-        t.upVec = vec3.rotate(t.upVec,np.radians(10),'x')
+        accel_wanted = 5*gravity*vec3.normalize(vec3(1,-1,-10))
     elif timenow < 9.0:
-        accel_wanted = 3*ACCEL_MULTIPLIER*accel_wanted
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(-20),'z')
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(20),'x')
-        t.upVec = vec3.rotate(t.upVec,np.radians(20),'x')
+        accel_wanted = 5*gravity*vec3.normalize(vec3(0,-1,-5))
     else:
-        #accel_wanted = ROTATION_RADIUS*accel_wanted.rotate(np.radians(10),'z')
-        #t.upVec = t.upVec.rotate(np.radians(10),'z')
-        accel_wanted = vec3.rotate(accel_wanted,np.radians(45),'z')
+        accel_wanted = 5*gravity*vec3.normalize(vec3(1,0,-1))
 
-    return genTargetMovement(t,frame,accel_wanted)
+    return genTargetAcceleration(t,frame,accel_wanted)

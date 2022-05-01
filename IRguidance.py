@@ -6,7 +6,7 @@ import mObjects as mobj
 from mObjects import Vec3D as vec3
 
 #!===============================================================
-# Guidance CALCULATIONS
+# IR Guidance CALCULATIONS
 #!===============================================================
 
 def seeker_simulator(m, allObjects):
@@ -28,10 +28,10 @@ def seeker_simulator(m, allObjects):
     targetList = []
     for obj in objects:
         calcRange = vec3.norm(obj.pVec - m.pVec)
-        calcAngle = np.rad2deg(
+        calcAngle = np.abs(np.rad2deg(
             np.arccos(
                 vec3.dot(vec3.normalize(obj.pVec - m.pVec), m.sVec)
-            ))
+            )))
         if calcRange <= m.data['rangeBand0']:
             # flare resistance
             if m.isLocked:
@@ -92,7 +92,7 @@ def seeker_simulator(m, allObjects):
             target = obj
     
     # 4. get target angle
-    target_angle = np.rad2deg(np.arccos(vec3.dot(m.fVec,m.sVec)))
+    target_angle = 0 if m.fVec == m.sVec else np.rad2deg(np.arccos(vec3.dot(m.fVec,m.sVec)))
     #print(target_angle, m.data['g_angleMax'])
     if np.abs(target_angle) <= m.data['g_angleMax']:
         return vec3.normalize(target.pVec - m.pVec), True
@@ -183,7 +183,8 @@ def getGuideAccel(m,frame,allObjects):
     # get Target
     newSVec, m.isLocked = seeker_simulator(m,allObjects)
     # get Acceleration Request
-    PIDResult = PID(newSVec-m.sVec,m)
+    #PIDResult = PID(newSVec-m.fVec,m) #? newSVec - m.sVec? 
+    PIDResult = PID(newSVec-m.sVec,m) #? 
     aCal = PN(m.data['g_ga_propNavMult'],
               vec3.normalize(PIDResult),
               vec3.norm(m.vVec))
