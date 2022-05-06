@@ -43,6 +43,9 @@ def limitDragDirection(m, guideReqAccel):
         mObjects.Vec3D: drag Force vector
     """
     #fVec = vec3.normalize(m.vVec)
+    #rVec = vec3.normalize(vec3.cross(m.upVec,fVec))
+    #upVec = vec3.normalize(vec3.cross(fVec,rVec))
+    
     fVec = vec3.normalize(m.fVec)
     upVec = m.upVec
     rVec = vec3.normalize(vec3.cross(upVec,fVec))
@@ -51,18 +54,21 @@ def limitDragDirection(m, guideReqAccel):
     AOSMax = m.data['finsAoA']
     AOAMax = m.data['finsAoA']
 
-    dragReqDir = vec3.normalize(guideReqAccel)
+    #dragReqVec = vec3.normalize(guideReqAccel-m.vVec)
+    dragReqVec = vec3.normalize(guideReqAccel)
+    #dragReqVec = guideReqAccel
+    vecNorm = vec3.norm(guideReqAccel)
 
-    nX = fVec *vec3.dot(dragReqDir,fVec)
-    nY = rVec *vec3.dot(dragReqDir,rVec)
-    nZ = upVec *vec3.dot(dragReqDir,upVec)
+    nX = fVec *vec3.dot(dragReqVec,fVec)
+    nY = rVec *vec3.dot(dragReqVec,rVec)
+    nZ = upVec *vec3.dot(dragReqVec,upVec)
 
-    AOScos = vec3.dot(dragReqDir,rVec)
-    AOAcos = vec3.dot(dragReqDir,upVec)
+    AOScos = vec3.dot(dragReqVec,rVec)
+    AOAcos = vec3.dot(dragReqVec,upVec)
 
-    AOSMax1 = rVec * np.cos(AOSMax)
+    AOSMax1 = rVec * np.cos(AOSMax)#*vec3.norm(nY)
     AOSMax2 = -AOSMax1
-    AOAMax1 = upVec * np.cos(AOAMax)
+    AOAMax1 = upVec * np.cos(AOAMax)#*vec3.norm(nZ)
     AOAMax2 = -AOAMax1
 
     if vec3.norm(nY) > np.tan(AOSMax):
@@ -73,7 +79,7 @@ def limitDragDirection(m, guideReqAccel):
         nZ = AOAMax2 if AOAcos < 0 else nZ
 
     ## direction
-    newDragVec = vec3.normalize(nX+nY+nZ)
+    newDragVec = vecNorm*vec3.normalize(nX+nY+nZ)
 
     return newDragVec
 
@@ -199,10 +205,12 @@ def getAccel(m,time,guideReqAccel):
     vrvec = vec3(0,1,0) if vfvec == upVec else vec3.cross(upVec,vfvec)
     vupvec = vec3.cross(vfvec,vrvec)
 
-    wingDragDirection = limitDragDirection(m,guideReqAccel)
+    limitedGuideReqAccel = limitDragDirection(m,guideReqAccel)
+    wingDragDirection = vec3.normalize(limitedGuideReqAccel)
 
     angle = getAngles(vfvec,vrvec,vupvec,fVec)
-    wingvAngle = getAngles(vfvec,vrvec,vupvec,wingDragDirection)
+    #wingvAngle = getAngles(vfvec,vrvec,vupvec,wingDragDirection)
+    wingvAngle = np.arccos(vec3.dot(wingDragDirection,fVec))
 
     liftArea = areaWing #Wing Area only!
     dragBodyArea = areaNose*np.cos(angle)+areaBody*np.sin(np.abs(angle)) #Reference Area!
@@ -216,6 +224,15 @@ def getAccel(m,time,guideReqAccel):
     # rotation force calculation
      
     dragWingForce = dragCoefWing*lift_drag_constant*dragWingArea*wingDragDirection#*2
+    
+    dragForceMax = m.data['g_ga_reqAccelMax']*data.getGravity(m.pVec.z)*massNow
+    if vec3.norm(dragWingForce) > dragForceMax:
+        dragWingForce = dragForceMax*vec3.normalize(dragWingForce)
+        m.isMaxG = True
+    else:
+        dragWingForce = dragWingForce
+        m.isMaxG = False
+    #print(np.rad2deg(wingvAngle),vec3.norm(guideReqAccel/massNow/data.getGravity(m.pVec.z)),vec3.norm(dragWingForce/massNow/data.getGravity(m.pVec.z)),guideReqAccel,dragWingForce)
 
     #-------------------------------------------
     #------------
@@ -236,26 +253,29 @@ def getAccel(m,time,guideReqAccel):
 
     sumAccel = reduce((lambda x,y:x+y), forces)/massNow
 
-    #TODO rotational force to match fvec == svec
-    rotateAccel = sumAccel
-    fTanAccel = fVec * vec3.dot(rotateAccel,fVec)
-    rTanAccel = rVec * vec3.dot(rotateAccel,rVec)
-    upTanAccel = upVec * vec3.dot(rotateAccel,upVec)
-    tangentForce = (rTanAccel+upTanAccel)
+    #TODO rotate fvec to match fvec == svec
+    rotateAccel = dragWingForce
+    #rotateAccel = dragBodyForce+dragWingForce
+    #fTanAccel = fVec * vec3.dot(rotateAccel,fVec)
+    #rTanAccel = rVec * vec3.dot(rotateAccel,rVec)
+    #upTanAccel = upVec * vec3.dot(rotateAccel,upVec)
+    #tangentForce = sumAccel
+    tangentForce = rotateAccel/massNow
+
     #sfdirection = vec3.normalize(m.sVec-m.fVec)
     #m.fVec = vec3.normalize(m.fVec   + 0.5*1/torqueRatio*sfdirection*0.5*data.dt*data.dt) #!TODO
     #m.sVec = vec3.normalize(m.sVec   - 0.5*1/torqueRatio*sfdirection*0.5*data.dt*data.dt) #!TODO
     #m.upVec = vec3.normalize(m.upVec + 0.5*1/torqueRatio*sfdirection*0.5*data.dt*data.dt) #!TODO
 
-    m.fVec = vec3.normalize(m.fVec   + torqueRatio*guideReqAccel*0.5*data.dt*data.dt) #!TODO
-    m.sVec = vec3.normalize(m.sVec   - torqueRatio*guideReqAccel*0.5*data.dt*data.dt) #!TODO
-    m.upVec = vec3.normalize(m.upVec + torqueRatio*guideReqAccel*0.5*data.dt*data.dt) #!TODO
+    m.fVec = vec3.normalize(m.fVec   + torqueRatio*tangentForce*0.5*data.dt*data.dt) #!TODO
+    #m.sVec = vec3.normalize(m.sVec   + torqueRatio*tangentForce*0.5*data.dt*data.dt) #!TODO
+    m.upVec = vec3.normalize(m.upVec + torqueRatio*tangentForce*0.5*data.dt*data.dt) #!TODO
+    
+    #m.fVec = vec3.normalize(m.fVec   + torqueRatio*limitedGuideReqAccel*0.5*data.dt*data.dt) #!TODO
+    #m.sVec = vec3.normalize(m.sVec   - torqueRatio*limitedGuideReqAccel*0.5*data.dt*data.dt) #!TODO
+    #m.upVec = vec3.normalize(m.upVec + torqueRatio*limitedGuideReqAccel*0.5*data.dt*data.dt) #!TODO
 
-    #m.fVec = vec3.normalize(m.fVec   + torqueRatio*tangentForce*0.5*data.dt*data.dt) #!TODO
-    #m.sVec = vec3.normalize(m.sVec   - torqueRatio*tangentForce*0.5*data.dt*data.dt) #!TODO
-    #m.upVec = vec3.normalize(m.upVec + torqueRatio*tangentForce*0.5*data.dt*data.dt) #!TODO
-
-    #return sumAccel
+    return sumAccel
     
     ##* temporary measure...
-    return thrust*fVec/massNow+guideReqAccel
+    #return thrust*fVec/massNow+guideReqAccel

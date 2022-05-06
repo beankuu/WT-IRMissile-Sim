@@ -36,18 +36,19 @@ def periodicFlare(start,flareSeries,flaresSeriesPeriod,flarePeriod):
 #-----------------------------------------------
 
 targetLocation = [ 
-    vec3(2000,300,3000)
+    #vec3(2000,300,3000)
+    vec3(2200,100,3000)
 ]
 
 target =  mobj.TargetObject(data=data.target0,    pVec = targetLocation[0],  vVec=vec3(250, 0, 0),  isAfterburnerOnAt=[(0.0,6.0)] )
 #missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
 
 missiles = [
-    #mobj.MissileObject(data=data.missile0,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
-    #mobj.MissileObject(data=data.missile1,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
-    #mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile0,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile1,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
     mobj.MissileObject(data=data.missile3,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
-    #mobj.MissileObject(data=data.missile4,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
+    mobj.MissileObject(data=data.missile4,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
 ]
 
 flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
@@ -81,6 +82,7 @@ sim4Plots = sim4.init(asim4, [targetData, missilesData[0]])
 sim5Plots = sim5.init(asim5, [targetData,missilesData[0],flaresData])
 
 #! update function
+
 def update(frame):
     """
     root of update of plot, per frame

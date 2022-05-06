@@ -68,9 +68,13 @@ def genTargetTrajectory(target,f):
     
     # temporary workaround
     if True:
-        #target.pVec += vec3(900/3.6*data.dt,2.5*np.cos(f/30),2.5*np.sin(f/30))
-        target.pVec += vec3(1000/3.6*data.dt,0,0)
-        #target.pVec += vec3(10,0,0)
+        po = target.pVec
+        target.pVec += vec3(700/3.6*data.dt,3*np.cos(f/40),3*np.sin(f/25))
+        #target.pVec += vec3(1000/3.6*data.dt,0,0)
+        #target.pVec += vec3(10,1,-0.1)
+        #target.pVec += vec3(5+5*np.cos(f/150),5*np.sin(f/200),0)
+
+        target.vVec = (target.pVec-po)/(data.dt)
         return copy.deepcopy(target)
 
     if True:

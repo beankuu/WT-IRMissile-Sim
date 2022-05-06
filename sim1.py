@@ -46,15 +46,6 @@ def init(plot,datapack):
                         targetData]
 
     color = 'red'
-    """
-    missileObjects = [plot.plot(0,0,0, color=color,linewidth=0.5), #mainplot
-                        plot.text3D(0,0,0,'', color=color, ha='right', size='small'),
-                        missileData,
-                        plot.plot(0,0,0, color='magenta',linewidth=1), #fvec
-                        plot.plot(0,0,0, color='cyan',linewidth=1), #upvec
-                        plot.plot(0,0,0, color='green',linewidth=0.2) #sVec
-                    ]
-    """
     missilesObjects = [
                         [
                             plot.plot(0,0,0, color=color,linewidth=0.5), #mainplot
@@ -104,10 +95,13 @@ def genTextStr(obj):
         return text
     
     mach = round(data.calcMach(vec3.norm(obj.vVec),obj.pVec.z),1)
-    speed = round(vec3.norm(obj.vVec)/0.277,1)
-    text += '\n'+'Mach: ' + str(mach)+'('+str(speed)+'km/h)\n'+\
-            'height: ' + str(round(obj.pVec.z,1))+'m'
+    speed = vec3.norm(obj.vVec)
+    speedKmh = round(speed/0.277,1)
+    text += '\n'+'Mach: ' + str(mach)+'('+str(speedKmh)+'km/h)\n'
+
     if type(obj) == mobj.MissileObject:
+        energy = round(0.5*speed*speed*obj.data['massEnd'],0)
+        text += str(energy)+' J'
         return text
 
     text += '\nAF' if obj.isAfterburnerOn else ''
@@ -138,8 +132,8 @@ def update(frame,simPlots):
 
     #------------------------------------------
     ## missile
-    #line_object, text_object, missileObjectList, line_fvec, line_upVec, line_svec = missileObjects
     for line_object, text_object, missileObjectList, line_1, line_2, line_3 in missilesObjects:
+    #for line_object, text_object, missileObjectList in missilesObjects:
         text_object.set_position_3d(missileObjectList[frame].pVec.toList())
         text_object.set_text(genTextStr(missileObjectList[frame]))
 
@@ -148,9 +142,9 @@ def update(frame,simPlots):
         line_object[0].set_data_3d([o.x for o in direction_vectors],
                                 [o.y for o in direction_vectors],
                                 [o.z for o in direction_vectors])
-
+        
         missile = missileObjectList[frame]
-    
+
         barlen = 500
         fVec = missile.fVec
         #rVec = vec3(0,1,0) if fVec == vec3(0,0,-1) else vec3.cross(fVec,vec3(0,0,-1))
@@ -169,34 +163,7 @@ def update(frame,simPlots):
         line_3[0].set_data_3d([missile.pVec.x, bardata.x],
                                 [missile.pVec.y, bardata.y],
                                 [missile.pVec.z, bardata.z])
-    
-    """
-    missile = missileObjectList[frame]
-    
-    barlen = 500
-    fVec = missile.fVec
-    #rVec = vec3(0,1,0) if fVec == vec3(0,0,-1) else vec3.cross(fVec,vec3(0,0,-1))
-    #upVec = vec3.cross(fVec,rVec)
-    upVec = missile.upVec
-    bardata = missile.pVec+barlen*fVec
-    line_fvec[0].set_data_3d([missile.pVec.x, bardata.x],
-                             [missile.pVec.y, bardata.y],
-                             [missile.pVec.z, bardata.z])
-
-    bardata = missile.pVec+barlen*vec3.normalize(missile.vVec)
-    line_upVec[0].set_data_3d([missile.pVec.x, bardata.x],
-                             [missile.pVec.y, bardata.y],
-                             [missile.pVec.z, bardata.z])
-    bardata = missile.pVec+barlen*missile.sVec
-    line_svec[0].set_data_3d([missile.pVec.x, bardata.x],
-                             [missile.pVec.y, bardata.y],
-                             [missile.pVec.z, bardata.z])
-    
-    #set_position only fetches first 2(x,y)
-    text_object.set_position_3d(missile.pVec.toList())
-    text_object.set_text(genTextStr(missile))
-    """
-
+        
     #------------------------------------------
     ## flare s 
     for text_object, flareObjectList in flareObjects:
@@ -205,6 +172,7 @@ def update(frame,simPlots):
     #------------------------------------------
     ## if condition
     for line_object, text_object, missileObjectList, line_1, line_2, line_3 in missilesObjects:
+    #for line_object, text_object, missileObjectList in missilesObjects:
         if missileObjectList[frame].isLocked:
             text_object.set_color('red')
         else:
@@ -224,6 +192,7 @@ def update(frame,simPlots):
     if frame == data.MaxFrame-1:
         resetColor(targetObjects[1],'target')
         for line_object, text_object, missileObjectList, line_1, line_2, line_3 in missilesObjects:
+        #for line_object, text_object, missileObjectList in missilesObjects:
             resetColor(text_object,'missile')
         for text_object, flareObjectList in flareObjects:
             resetColor(text_object,'flare')
