@@ -117,7 +117,7 @@ missile6 = {
 #!------------------------------------------------------------------------------------
 # thrust, afterburner thrust, enginecount
 target0 = {
-    'name' : '목표',
+    'name' : 'Target',
     'mass' : 1000, #kg
     'maxspeed' : 350, #m/s (1332kmh)
     'Thrust' : 5250,
