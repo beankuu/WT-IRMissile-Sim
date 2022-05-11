@@ -33,15 +33,10 @@ def ir_seeker_simulator(m, allObjects):
                 vec3.dot(vec3.normalize(obj.pVec - m.pVec), m.sVec)
             )))
         if calcRange <= m.data['rangeBand0']:
-            # flare resistance
-            if m.isLocked:
-                if calcAngle <= m.data['g_fov']/2:
-                    targetList.append(obj)
-            else:
-                if calcAngle <= m.data['g_angleMax']/2:
-                    targetList.append(obj)
-    
-    # 2. from targetlist, ignore brightness below 1
+            if calcAngle <= m.data['g_fov']/2:
+                targetList.append(obj)
+
+    # 2. from targetlist
     #"""
     brightness = 1 # minimum
     brightestTargets = [] #obj, brightness
@@ -73,7 +68,7 @@ def ir_seeker_simulator(m, allObjects):
                     elif tempBrightness == brightness:
                         brightestTargets.append([obj, brightness])
         #"""
-    #targetList = [elm[0] for elm in brightestTargets]
+    targetList = [elm[0] for elm in brightestTargets]
     #targetList = brightestTargets
     #print(targetList)
     # no target? get out

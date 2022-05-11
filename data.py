@@ -4,78 +4,10 @@
 # Global constants
 INFINITE = 2147483647
 
-TIMEMAX = 12
+TIMEMAX = 10
 FPS = 30
 MaxFrame = TIMEMAX*FPS
 dt = 1/FPS
-#--------------------------------------------
-#autopilot_ailerons_rateDeadZone= 0.0
-#autopilot_ailerons_angleDeadZone= 0.0
-#autopilot_ailerons_velDeadZone= 0.0
-#autopilot_ailerons_posDeadZone= 0.1
-#autopilot_ailerons_posHoldVelTreshold= 2.0
-#autopilot_ailerons_posHoldTimeOut= 3.0
-#autopilot_ailerons_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
-#autopilot_ailerons_angleLim= 190.0
-#autopilot_ailerons_angleLimFullRateMult= 0.8
-#autopilot_ailerons_autoRateDeadZone= 0.0
-autopilot_ailerons_maxAutoRateMult= 0.85
-#autopilot_ailerons_limitHalfWingAoa= False
-autopilot_ailerons_maxAoaMult= 0.8
-autopilot_ailerons_rollTimeMultBase= 4.0
-
-#autopilot_elevator_rateDeadZone= 0.0
-#autopilot_elevator_angleDeadZone= 0.0
-#autopilot_elevator_velDeadZone= 0.0
-#autopilot_elevator_posDeadZone= 0.1
-#autopilot_elevator_posHoldVelTreshold= 2.0
-#autopilot_elevator_posHoldTimeOut= 3.0
-#autopilot_elevator_angleLimByRaltitude= [15.0,20.0,50.0,190.0]
-#autopilot_elevator_angleLim= 190.0
-#autopilot_elevator_angleLimFullRateMult= 0.8
-#autopilot_elevator_aoaFactorDeadZone= 0.0
-#autopilot_elevator_loadFactorFilterViscosity= 0.05
-#autopilot_elevator_loadFactorDeadZone= 0.0
-autopilot_elevator_maxLoadFactorMult= 0.85
-autopilot_elevator_targetMaxAoaFactorMult= 1.0
-autopilot_elevator_additionalAoaMaxFactorMult= 1.0
-autopilot_elevator_maxAoaFactorMult= 0.95
-#autopilot_elevator_limitAoaByLoadFactor= True
-#autopilot_elevator_limitStabAoa= False
-autopilot_elevator_loadFactorTimeMultBase= 5.0
-autopilot_elevator_aoaTimeMultBase= 0.2
-
-#autopilot_yaw_rateDeadZone= 0.0
-#autopilot_yaw_headingHoldRateTreshold= 2.0
-#autopilot_yaw_headingHoldTimeOut= 0.5
-
-#autopilot_throttle_climbDeadZone= 0.0
-#autopilot_throttle_altDeadZone= 0.1
-#autopilot_throttle_altHoldClimbTreshold= 0.5
-#autopilot_throttle_altHoldTimeOut= 0.5
-#autopilot_throttle_climbMinLimByHorSpeed= [40.0,-3.0,80.0,-15.0]
-#autopilot_throttle_climbMinLimByRAltitude= [15.0,-3.0,50.0,-15.0]
-
-#autopilot_aim_axesTreshold= 0.05
-#autopilot_aim_rollLim= 50.0
-#autopilot_aim_rollLimByRaltitude= [15.0,20.0,50.0,190.0]
-#autopilot_aim_pitchLim= 20.0
-#autopilot_aim_pitchLimByRaltitude= [15.0,20.0,100.0,190.0]
-#autopilot_aim_overridenRollLim= 30.0
-#autopilot_aim_angleLimFullRateMult= 0.8
-
-#----------
-
-#shaftDegradationSpeed1= 0.0005
-#shaftDegradationSpeed2= 0.0035
-#shaftDegradationSpeed3= 0.015
-
-#wingWaveMassRel= 0.25
-#wingspanToWingResonanceSpeed= 295.0
-#rollingWingWaveRange= [0.1,2.0]
-#wingSpringDampJoint= True
-wingSpringDampJointMult= [0.5,0.005]
-wingSpringDampJointArmRel= 1.0
 
 #----------
 
@@ -86,14 +18,6 @@ EngineIRMultFront = 0.0006
 EngineIRMultSide  = 0.06
 EngineIRMultRear = 1.0
 
-"""
-#----------
-AFIRMult = 20
-AFIRTempMach = 0.8
-AFIRTemp2BrightPwr = 10.0
-AFIRTemp2BrightMult0 = [0, 1]
-AFIRTemp2BrightMult1 = [5000, 2.4]
-"""
 """
 #----------
 ## snow
@@ -121,8 +45,6 @@ missile0 = {
     'g_fov' : 4.0,      'g_lockAngleMax' : 5.0,    'g_angleMax' : 25.0,    'g_rateMax' : 11.0,
     'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 11.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.001,
-    'tb0_altitude' : 0.0,    'tb0_fighterMach' : [1.2,0.8], 'tb0_targetMach' : [0.9,0.8], 'tb0_rangeMin' : [500,3700,400,2500], 'tb0_rangeMax' : [2000,2600,1600,1800], 'tb0_altdiff' : [500,1000],
-    'tb1_altitude' : 6000.0, 'tb1_fighterMach' : [1.2,0.8], 'tb1_targetMach' : [0.9,0.8], 'tb1_rangeMin' : [500,3700,400,2500], 'tb1_rangeMax' : [3800,4800,2900,3300], 'tb1_altdiff' : [500,1000],
     'proximityFuse_radius' : 5.0
 }
 # missile1 : sidewinder AIM-9D
@@ -134,8 +56,6 @@ missile1 = {
     'g_fov' : 2.5,    'g_lockAngleMax' : 10.0,    'g_angleMax' : 40.0,    'g_rateMax' : 12.0, 
     'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 18.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.001,
-    'tb0_altitude' : 0.0,    'tb0_fighterMach' : [1.2,0.8], 'tb0_targetMach' : [0.8,0.8], 'tb0_rangeMin' : [500,3000,400,2100], 'tb0_rangeMax' : [3400,4300,2400,2750], 'tb0_altdiff' : [500,1000],
-    'tb1_altitude' : 6000.0, 'tb1_fighterMach' : [1.2,0.8], 'tb1_targetMach' : [0.8,0.8], 'tb1_rangeMin' : [600,3000,500,2100], 'tb1_rangeMax' : [5400,8500,4800,6400], 'tb1_altdiff' : [500,1000],
     'proximityFuse_radius' : 5.0
 
 }
@@ -148,8 +68,6 @@ missile2 = {
     'g_ga_timeOut' : 0.35,  'g_fov' : 5.0,    'g_lockAngleMax' : 12.0,    'g_angleMax' : 45.0,    'g_rateMax' : 35.0,
     'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 30.0,    'g_ga_baseIndSpeed' : 1700.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.5,    'g_ga_accelControlDiff' : 0.001,
-    'tb0_altitude' : 1000.0, 'tb0_fighterMach' : [0.91,0.74], 'tb0_targetMach' : [0.74,0.58], 'tb0_rangeMin' : [300,2600,250,1700], 'tb0_rangeMax' : [2300,3600,2500,3800], 'tb0_altdiff' : [500,1000],
-    'tb1_altitude' : 5000.0, 'tb1_fighterMach' : [0.95,0.61], 'tb1_targetMach' : [0.61,0.78], 'tb1_rangeMin' : [300,2600,250,1700], 'tb1_rangeMax' : [3900,5000,4300,5500], 'tb1_altdiff' : [500,1000],
     'proximityFuse_radius' : 3.0
 }
 # missile3 : PL-5B
@@ -161,11 +79,9 @@ missile3 = {
     'g_fov' : 2.4,    'g_lockAngleMax' : 25.0,    'g_angleMax' : 40.0,    'g_rateMax' : 20.0,
     'g_ga_timeOut' : 0.5,  'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 30.0,    'g_ga_baseIndSpeed' : 1800.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.002,
-    'tb0_altitude' : 0.0, 'tb0_fighterMach' : [0,0], 'tb0_targetMach' : [0,0], 'tb0_rangeMin' : [0,0,0,0], 'tb0_rangeMax' : [0,0,0,0], 'tb0_altdiff' : [0,0],
-    'tb1_altitude' : 0.0, 'tb1_fighterMach' : [0,0], 'tb1_targetMach' : [0,0], 'tb1_rangeMin' : [0,0,0,0], 'tb1_rangeMax' : [0,0,0,0], 'tb1_altdiff' : [0,0],
     'proximityFuse_radius' : 5.0
 }
-# missile3 : AIM-9L
+# missile4 : AIM-9L
 missile4 = {
     'name' : 'AIM-9L',
     'caliber' : 0.127,    'mass' : 84.46,   'massEnd' : 57.06,    'dragCx' : 0.018,    'length' : 2.85,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
@@ -174,22 +90,42 @@ missile4 = {
     'g_fov' : 2.5,    'g_lockAngleMax' : 17.0,    'g_angleMax' : 45.0,    'g_rateMax' : 35.0,
     'g_ga_timeOut' : 0.5, 'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 30.0,    'g_ga_baseIndSpeed' : 1440.0,
     'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.75,    'g_ga_accelControlDiff' : 0.003,
-    'tb0_altitude' : 0.0,    'tb0_fighterMach' : [1.2,0.8], 'tb0_targetMach' : [0.8,0.8], 'tb0_rangeMin' : [500.0,3000.0,400.0,2100.0], 'tb0_rangeMax' : [3400.0,4300.0,2400.0,2750.0], 'tb0_altdiff' : [500.0,1000.0],
-    'tb1_altitude' : 6000.0, 'tb1_fighterMach' : [1.2,0.8], 'tb1_targetMach' : [0.8,0.8], 'tb1_rangeMin' : [600.0,3000.0,500.0,2100.0], 'tb1_rangeMax' : [5400.0,8500.0,4800.0,6400.0], 'tb1_altdiff' : [500.0,1000.0],
     'proximityFuse_radius' : 5.0
+}
+# missile5 : AIM-9J
+missile5 = {
+    'name' : 'AIM-9J',
+    'caliber' : 0.127,    'mass' : 76.03,   'massEnd' : 58.0,    'dragCx' : 0.018,    'length' : 3.05,    'wingAreamult' : 1.4,    'distFromCmToStab' : 0.1,    
+    'CxK' : 3.3,    'finsAoA' : 0.18,    'force' : 18100,    'timeFire' : 2.2,     'endSpeed' : 1000.0,    'timeLife' : 40.0,    
+    'machMax' : 2.5,    'loadFactorMax' : 20.0,    'rangeBand0' : 5500.0,
+    'g_fov' : 2.5,    'g_lockAngleMax' : 10.0,    'g_angleMax' : 40.0,    'g_rateMax' : 16.5,
+    'g_ga_timeOut' : 0.5, 'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 20.0,    'g_ga_baseIndSpeed' : 1620.0,
+    'g_ga_accelControlProp' : 0.01,    'g_ga_accelControlIntg' : 0.005,    'g_ga_accelControlIntgLim' : 0.5,    'g_ga_accelControlDiff' : 0.001,
+    'proximityFuse_radius' : 5.0
+}
+# missile6 : R-24T
+missile6 = {
+    'name' : 'R-24T',
+    'caliber' : 0.2,    'mass' : 237.0,   'massEnd' : 162.0,    'dragCx' : 0.018,    'length' : 4.194,    'wingAreamult' : 1.35,    'distFromCmToStab' : 0.06,    
+    'CxK' : 2.1,    'finsAoA' : 0.12,    'force' : 50000,    'timeFire' : 3.0,     'endSpeed' : 1500.0,    'timeLife' : 45.0,    
+    'machMax' : 3.5,    'loadFactorMax' : 24.0,    'rangeBand0' : 25000.0,
+    'g_fov' : 2.6,    'g_lockAngleMax' : 55.0,    'g_angleMax' : 55.0,    'g_rateMax' : 20.0,
+    'g_ga_timeOut' : 0.0, 'g_ga_propNavMult' : 4.0,    'g_ga_reqAccelMax' : 24.0,    'g_ga_baseIndSpeed' : 1580.0,
+    'g_ga_accelControlProp' : 0.04,    'g_ga_accelControlIntg' : 0.02,    'g_ga_accelControlIntgLim' : 0.8,    'g_ga_accelControlDiff' : 0.002,
+    'proximityFuse_radius' : 10.0
 }
 #!------------------------------------------------------------------------------------
 # thrust, afterburner thrust, enginecount
 target0 = {
-    'name' : 'Dummy Target',
+    'name' : '목표',
     'mass' : 1000, #kg
-    'maxspeed' : 1, #m/s (1332kmh)
-    'Thrust' : 9.80665*10000,
+    'maxspeed' : 350, #m/s (1332kmh)
+    'Thrust' : 5250,
     'AoA' : 0.25, #90 deg
     'AfterburnerBoost' : 1.1,
-    'ThrustMult' : 1.5,
-    'enginecount' : 1,
-    'flareType' : 1
+    'ThrustMult' : 1.4,
+    'enginecount' : 2,
+    'flareType' : 0
 }
 # F-4E
 target1 = {
@@ -198,7 +134,7 @@ target1 = {
     'maxspeed' : 350, #m/s (1260kmh)
     'AoA' : 0.138, #50 deg,
     'wingAreaSum' : 8.2*6+4.0+5.2+1.8+5.0+1.5+0.35*2,
-    'Thrust' : 9.80665*2600,
+    'Thrust' : 5250,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.4,
     'enginecount' : 2,
@@ -211,7 +147,7 @@ target2 = {
     'maxspeed' : 360, #m/s (1296kmh)
     'AoA' : 0.25, #90 deg
     'wingAreaSum' : (4+7+6+4+7+6+0.2)*7.8,
-    'Thrust' : 9.80665*6057.0601,
+    'Thrust' : 7900,
     'AfterburnerBoost' : 1.1,
     'ThrustMult' : 1.32,
     'enginecount' : 1,

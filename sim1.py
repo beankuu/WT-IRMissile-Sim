@@ -18,9 +18,15 @@ def init(plot,datapack):
     """
     targetData,missilesData,flaresData = datapack
 
-    plot.set_xlim3d([0,7000])
-    plot.set_ylim3d([-1000,1000])
-    plot.set_zlim3d([2500,3500])
+    #plot.set_xlim3d([0,7000])
+    #plot.set_ylim3d([-1000,1000])
+    #plot.set_zlim3d([2500,3500])
+
+    plot.set_xlim3d([2000,5000])
+    plot.set_ylim3d([-250,250])
+    plot.set_zlim3d([2900,3100])
+    
+
     #plot.set_xlim3d([0,7000])
     #plot.set_ylim3d([-3000,3000])
     #plot.set_zlim3d([500,7500])
@@ -42,14 +48,14 @@ def init(plot,datapack):
     ## PlotObjects related to Target Object
     color = 'blue'
     targetObjects = [plot.plot(0,0,0, color=color,linewidth=0.5),
-                        plot.text3D(0,0,0,'', color=color, size='small'),
+                        plot.text3D(0,0,0,'', color=color, va='top', ha='right', size='x-small'),
                         targetData]
 
     color = 'red'
     missilesObjects = [
                         [
                             plot.plot(0,0,0, color=color,linewidth=0.5), #mainplot
-                            plot.text3D(0,0,0,'', color=color, ha='right', size='x-small'),
+                            plot.text3D(0,0,0,'', color=color, ha='right', size='small'),
                             missilesData[i],
                             plot.plot(0,0,0, color='magenta',linewidth=1), #fvec
                             plot.plot(0,0,0, color='cyan',linewidth=1), #upvec
@@ -100,15 +106,15 @@ def genTextStr(obj):
     text += '\n'+'Mach: ' + str(mach)+'('+str(speedKmh)+'km/h)\n'
 
     if type(obj) == mobj.MissileObject:
-        energy = round(0.5*speed*speed*obj.data['massEnd'],0)
-        text += str(energy)+' J'
+        energy = round(0.5*speed*speed*obj.data['massEnd']/1000,1)
+        #text += str(energy)+' KJ'
         return text
 
-    text += '\nAF' if obj.isAfterburnerOn else ''
+    text += '\nAF\n\n' if obj.isAfterburnerOn else '\n\n\n'
     #if type(obj) == mobj.TargetObject:
     return text
 
-def update(frame,simPlots):
+def update(frame,simPlots,ax):
     """
     update of plot, per frame
 
@@ -145,7 +151,7 @@ def update(frame,simPlots):
         
         missile = missileObjectList[frame]
 
-        barlen = 500
+        barlen = 50
         fVec = missile.fVec
         #rVec = vec3(0,1,0) if fVec == vec3(0,0,-1) else vec3.cross(fVec,vec3(0,0,-1))
         #upVec = vec3.cross(fVec,rVec)
@@ -186,7 +192,21 @@ def update(frame,simPlots):
     
     #------------------------------------------
     ## rotate graph
-    #ax.view_init(elev = 20-10+frame/5, azim=-160+30-frame/3)
+    #ax.view_init(elev = 10+20-10+frame/5, azim=160-30-frame/3)
+    ax.view_init(elev = 10+20-10+frame/5, azim=-30-frame/3)
+    """
+    if frame < data.MaxFrame*0.1:
+        elev = ax.elev+0.4; azim = ax.azim+0.1
+    elif frame < data.MaxFrame*0.3:
+        elev = ax.elev+0.35; azim = ax.azim+0.15
+    elif frame < data.MaxFrame*0.5:
+        elev = ax.elev+0.3; azim = ax.azim+0.2
+    elif frame < data.MaxFrame*0.7:
+        elev = ax.elev+0.1; azim = ax.azim+0.3
+    else:
+        elev = ax.elev+0.1; azim = ax.azim+0.4
+    ax.view_init(elev=elev,azim=azim)
+    """
 
     ## do-things at end of frame
     if frame == data.MaxFrame-1:

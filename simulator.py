@@ -36,24 +36,34 @@ def periodicFlare(start,flareSeries,flaresSeriesPeriod,flarePeriod):
 #-----------------------------------------------
 
 targetLocation = [ 
-    #vec3(2000,300,3000)
-    vec3(2200,100,3000)
+    vec3(2500,50,3000)
+    #vec3(2000,50,3000)
 ]
 
-target =  mobj.TargetObject(data=data.target0,    pVec = targetLocation[0],  vVec=vec3(250, 0, 0),  isAfterburnerOnAt=[(0.0,6.0)] )
-#missile = mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
+target =  mobj.TargetObject(data=data.target0,    pVec = targetLocation[0],  vVec=vec3(250, 0, 0),  isAfterburnerOnAt=[(0.0,0.0)] )
+#target =  mobj.TargetObject(data=data.target0,    pVec = targetLocation[0],  vVec=vec3(250, 0, 0),  isAfterburnerOnAt=[(0.0,5.0)] ) #sim2
 
 missiles = [
-    mobj.MissileObject(data=data.missile0,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
-    mobj.MissileObject(data=data.missile1,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
-    mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    #mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    #mobj.MissileObject(data=data.missile5,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    #mobj.MissileObject(data=data.missile0,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+
+    mobj.MissileObject(data=data.missile6,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile5,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile4,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
     mobj.MissileObject(data=data.missile3,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
-    mobj.MissileObject(data=data.missile4,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] )
+    mobj.MissileObject(data=data.missile2,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile1,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
+    mobj.MissileObject(data=data.missile0,  pVec = vec3(0,0,3000),     sVec=targetLocation[0] ),
 ]
 
 flareTypeData = data.flare0 if target.data['flareType'] == 0 else data.flare1
-flareTimes = periodicFlare(1.0, 2, 2.0, 0.1)
-flareTimes = []
+##flareTimes = periodicFlare(1.0, 2, 2.0, 0.1)
+
+flareTimes = periodicFlare(1.0, 3, 2.0, 0.2)
+#flareTimes = periodicFlare(1.0, 5, 0.5, 0.3) #Sim3
+#flareTimes = periodicFlare(1.0, 3, 2.0, 0.2) #Sim2-Last
+#flareTimes = []
 print('flare @ ',flareTimes)
 
 flares = [ mobj.FlareObject(data=flareTypeData) for i in range(len(flareTimes)) ]
@@ -90,7 +100,7 @@ def update(frame):
     Args:
         frame (float) : frame(time)
     """
-    sim1.update(frame,sim1Plots)
+    sim1.update(frame,sim1Plots,asim1)
     sim2.update(frame,sim2Plots)
     sim3.update(frame,sim3Plots)
     sim4.update(frame,sim4Plots)
@@ -104,7 +114,7 @@ animation = ani.FuncAnimation(
     frames = data.MaxFrame,
     interval = 1000/data.FPS
 )
-#FFwriter=ani.FFMpegWriter(fps=15, extra_args=['-vcodec', 'libx264'])
-FFwriter=ani.FFMpegWriter(fps=30)
-#animation.save('test.mp4',writer = FFwriter)
+FFwriter=ani.FFMpegWriter(fps=15,bitrate=-1, extra_args=['-vcodec', 'libx264'])
+#FFwriter=ani.FFMpegWriter(fps=15)
+#animation.save('sim2-last.mp4',writer = FFwriter)
 plt.show()

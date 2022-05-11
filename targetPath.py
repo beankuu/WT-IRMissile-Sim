@@ -66,14 +66,6 @@ def genTargetAcceleration(t,frame,accelRequest):
     wingSpoilerArea = 1
     drag_lift_constant = airDensity * velocity * velocity * 0.5
     #ThrustMult
-    #AfterburnerBoost
-    timenow = frame*data.dt
-    closestPair = min(t.isAfterburnerOnAt , key=lambda x: min(abs(y - timenow) for y in x))
-    if closestPair:
-        if timenow > closestPair[0]:
-            t.isAfterburnerOn = True
-        if timenow > closestPair[1]:
-            t.isAfterburnerOn = False
     
     if t.isAfterburnerOn: 
         thrust = t.data['AfterburnerBoost']*t.data['ThrustMult']* t.data['Thrust']*t.data['enginecount']

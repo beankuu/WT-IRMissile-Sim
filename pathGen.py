@@ -65,15 +65,32 @@ def genTargetTrajectory(target,f):
     if isGrounded(target):
         target.aVec = target.pVec = target.vVec = vec3()
         return copy.deepcopy(target)
+
+    # Afterburner?
+    timenow = f*data.dt
+    closestPair = min(target.isAfterburnerOnAt , key=lambda x: min(abs(y - timenow) for y in x))
+    if closestPair:
+        if timenow > closestPair[0]:
+            target.isAfterburnerOn = True
+        if timenow > closestPair[1]:
+            target.isAfterburnerOn = False
     
     # temporary workaround
     if True:
         po = target.pVec
-        target.pVec += vec3(700/3.6*data.dt,3*np.cos(f/40),3*np.sin(f/25))
-        #target.pVec += vec3(1000/3.6*data.dt,0,0)
-        #target.pVec += vec3(10,1,-0.1)
-        #target.pVec += vec3(5+5*np.cos(f/150),5*np.sin(f/200),0)
-
+        ## left bank
+        #target.pVec += vec3(np.cos(f/350)*data.dt*1000/3.6,np.sin(f/150)*data.dt*100/3.6,0) #sim1, sim2
+        #target.pVec += vec3(np.cos(f/350)*data.dt*1000/3.6,np.sin(f/150)*data.dt*30/3.6,0) #sim3
+        #target.pVec += vec3(np.cos(f/350)*data.dt*1000/3.6,np.sin(f/150)*data.dt*150/3.6,0) #sim4
+        ## barrel roll
+        #target.pVec += vec3(700/3.6*data.dt,5*np.cos(f/50),5*np.sin(f/50))*0.7
+        ## barrel roll 2
+        #target.pVec += vec3(600/3.6*data.dt,3*np.cos(f/40),3*np.sin(f/25))
+        ## diagonal 
+        #target.pVec += vec3(500/3.6*data.dt,600/3.6*data.dt,0)*0.7
+        ## barrel roll custom
+        target.pVec += vec3(900/3.6*data.dt,2*np.sin(f/25),2*np.cos(f/40))
+        
         target.vVec = (target.pVec-po)/(data.dt)
         return copy.deepcopy(target)
 
